@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#8f77ff"/>
+      <stop offset="55%" stop-color="#7b61ff"/>
+      <stop offset="100%" stop-color="#4f34e0"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e9e3ff"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#2a1a80" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Círculo de fondo (se ve perfecto recortado a círculo) -->
+  <circle cx="250" cy="250" r="250" fill="url(#bg)"/>
+
+  <!-- Halo mágico -->
+  <circle cx="250" cy="250" r="165" fill="#ffffff" opacity="0.06"/>
+  <circle cx="250" cy="250" r="120" fill="#ffffff" opacity="0.06"/>
+
+  <!-- Mancuerna centrada -->
+  <g filter="url(#soft)" transform="translate(0,14)">
+    <rect x="150" y="237" width="200" height="30" rx="15" fill="url(#metal)"/>
+    <rect x="116" y="196" width="40" height="112" rx="19" fill="url(#metal)"/>
+    <rect x="88"  y="217" width="34" height="70" rx="16" fill="url(#metal)"/>
+    <rect x="344" y="196" width="40" height="112" rx="19" fill="url(#metal)"/>
+    <rect x="378" y="217" width="34" height="70" rx="16" fill="url(#metal)"/>
+  </g>
+
+  <!-- Chispas del genio -->
+  <g fill="#c6f135">
+    <path d="M250 92 l12 30 30 12 -30 12 -12 30 -12 -30 -30 -12 30 -12z"/>
+    <path d="M372 150 l7 18 18 7 -18 7 -7 18 -7 -18 -18 -7 18 -7z" opacity="0.95"/>
+    <path d="M128 168 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6z" opacity="0.85"/>
+  </g>
+</svg>

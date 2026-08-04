@@ -1,0 +1,14 @@
+# Vercel
+.vercel
+
+# Dependencias (no las usamos, pero por si acaso)
+node_modules
+
+# Basura del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Nunca subir llaves
+.env
+.env.*
