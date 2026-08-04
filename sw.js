@@ -4,7 +4,8 @@
 // REGLA DE ORO: primero pregunta a internet, y SOLO si no hay señal usa lo guardado.
 // Así nunca le muestra a nadie una versión vieja de tu app.
 
-const CACHE = 'gymgenio-v1';
+// Al subir cambios de imágenes o diseño, sube este número: limpia lo guardado.
+const CACHE = 'gymgenio-v2';
 
 // Lo mínimo para que la app abra aunque no haya señal.
 const BASICOS = [
