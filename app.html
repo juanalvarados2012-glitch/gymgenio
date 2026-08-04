@@ -203,7 +203,8 @@
   .aviso b{color:var(--text)}
   .contacto{text-align:center;font-size:.83rem;color:var(--muted);margin-bottom:60px}
   .contacto a{color:var(--acid);font-weight:600}
-  .hidden{display:none}
+  /* !important: hay reglas escritas más abajo (.sep, .bar) que si no le ganan a esta */
+  .hidden{display:none !important}
   .sep{display:flex;align-items:center;gap:14px;margin:34px 0 22px;color:var(--muted);font-size:.7rem;
     font-weight:700;letter-spacing:.18em;text-transform:uppercase}
   .sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
