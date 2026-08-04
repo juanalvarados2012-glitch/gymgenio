@@ -310,11 +310,18 @@
     if (!sb) return;
     limpiarMsg();
     btnGoogle.disabled = true;
-    const { error } = await sb.auth.signInWithOAuth({
+    // Pedimos la dirección y navegamos nosotros: así funciona siempre,
+    // sin depender de que la librería haga el salto sola.
+    const { data, error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/app.html' }
+      options: { redirectTo: window.location.origin + '/app.html', skipBrowserRedirect: true }
     });
-    if (error){ verMsg(error.message || t('js.err'), 'err'); btnGoogle.disabled = false; }
+    if (error || !data || !data.url){
+      verMsg((error && error.message) || t('js.err'), 'err');
+      btnGoogle.disabled = false;
+      return;
+    }
+    window.location.href = data.url;
   };
 
   document.getElementById('logout').onclick = async () => { await sb.auth.signOut(); await mostrarSesion(); };
