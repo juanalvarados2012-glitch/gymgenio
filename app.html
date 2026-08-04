@@ -135,6 +135,38 @@
   .peso-num small{font-family:var(--body);font-size:.75rem;font-weight:600;color:var(--muted)}
   .delta{font-size:.8rem;font-weight:700}
   .delta.baja{color:var(--done)}.delta.sube{color:var(--acid)}
+
+  /* 📸 Contador de calorías */
+  .comida-box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:24px 26px;margin:0 0 26px}
+  .comida-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .comida-head h3{font-family:var(--display);font-size:1.5rem;letter-spacing:.02em}
+  .pro-badge{font-size:.62rem;font-weight:800;letter-spacing:.12em;background:var(--acid);color:#0A0A0B;padding:.28em .55em;border-radius:3px}
+  .comida-box .sub{font-size:.85rem;color:var(--muted);margin:0 0 18px}
+  .comida-box #comidaBtn{width:100%}
+  .hoy{display:flex;align-items:center;gap:18px;border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:18px;background:var(--ink)}
+  .hoy-total{text-align:center;flex:none}
+  .hoy-total .big{font-family:var(--display);font-size:2.2rem;line-height:1;color:var(--acid)}
+  .hoy-total .cap{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .hoy-macros{display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
+  .hoy-macros b{color:var(--text);font-weight:700}
+  .cres{border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin-top:18px;background:var(--ink)}
+  .cres-kcal{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
+  .cres-kcal .n{font-family:var(--display);font-size:2.8rem;line-height:1;color:var(--acid)}
+  .cres-kcal .u{font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .cres-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+  .cmac{background:var(--panel);padding:12px 8px;text-align:center}
+  .cmac .n{font-weight:800;font-size:1.15rem;color:var(--text)}
+  .cmac .l{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+  .cres-foods{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .cres-foods span{border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--muted)}
+  .cres-nota{font-size:.85rem;color:var(--muted);line-height:1.5}
+  .cres-conf{font-size:.72rem;color:var(--muted);margin-top:8px}
+  .cres-conf.baja{color:#E9B949}
+  .comida-lista{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .comida-lista .cl-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:.85rem;border-bottom:1px solid var(--line)}
+  .comida-lista .cl-row:last-child{border-bottom:none}
+  .comida-lista .cl-food{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .comida-lista .cl-kcal{color:var(--acid);font-weight:700;white-space:nowrap}
   .spark{flex:1;min-width:120px;height:44px}
 
   /* ---------- TEMPORIZADOR ---------- */
@@ -256,6 +288,34 @@
     <div class="stat"><div class="big" id="stRacha">0</div><div class="cap" data-i18n="st.streak">Day streak</div></div>
     <div class="stat"><div class="big" id="stTotal">0</div><div class="cap" data-i18n="st.done">Workouts done</div></div>
     <div class="stat"><div class="big" id="stSemana">0<small>/0</small></div><div class="cap" data-i18n="st.week">This plan</div></div>
+  </div>
+
+  <!-- 📸 CONTADOR DE CALORÍAS POR FOTO (solo Pro) -->
+  <div class="comida-box hidden" id="cajaComida">
+    <div class="comida-head">
+      <h3 data-i18n="cm.h">📸 Calorie counter</h3>
+      <span class="pro-badge" data-i18n="cm.pro">PRO</span>
+    </div>
+    <p class="sub" data-i18n="cm.sub">Snap or upload a photo of your meal and the genie estimates its calories and macros.</p>
+
+    <!-- Total de hoy -->
+    <div class="hoy hidden" id="comidaHoy">
+      <div class="hoy-total"><div class="big" id="hoyKcal">0</div><div class="cap" data-i18n="cm.today">Today</div></div>
+      <div class="hoy-macros" id="hoyMacros"></div>
+    </div>
+
+    <input type="file" id="comidaFile" accept="image/*" capture="environment" hidden>
+    <button class="btn btn-acid" id="comidaBtn" data-i18n="cm.btn">📸 Analyze my meal</button>
+
+    <div id="comidaCargando" class="status hidden">
+      <div class="bars"><span></span><span></span><span></span><span></span></div>
+      <b data-i18n="cm.load">Reading your plate…</b>
+    </div>
+    <div id="comidaError" class="error hidden"></div>
+    <div id="comidaResult" class="hidden"></div>
+
+    <!-- Historial de hoy -->
+    <div id="comidaLista" class="comida-lista hidden"></div>
   </div>
 
   <!-- PLAN GUARDADO / RECIÉN HECHO -->
@@ -459,7 +519,15 @@
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'pwa.txt':'📲 Instala GymGenio en tu teléfono y ábrela como app de verdad.',
       'pwa.btn':'Instalar app',
-      'pwa.ios':'📲 Para instalarla: toca Compartir ⬆️ abajo y luego "Agregar a inicio".'
+      'pwa.ios':'📲 Para instalarla: toca Compartir ⬆️ abajo y luego "Agregar a inicio".',
+      /* contador de calorías */
+      'cm.h':'📸 Contador de calorías','cm.pro':'PRO',
+      'cm.sub':'Toma o sube una foto de tu comida y el genio estima sus calorías y macros.',
+      'cm.today':'Hoy','cm.btn':'📸 Analizar mi comida','cm.load':'Mirando tu plato…',
+      'cm.kcal':'kcal','cm.mProt':'Proteína','cm.mCarb':'Carbos','cm.mFat':'Grasa',
+      'cm.conf':'Confianza','cm.confbaja':'baja','cm.confmedia':'media','cm.confalta':'alta',
+      'cm.noFood':'Mmm, eso no parece comida. Prueba con una foto de tu plato. 🍽️',
+      'cm.again':'📸 Analizar otra comida','cm.todayH':'Comidas de hoy'
     },
     en:{
       'js.building':'Building…','js.free':'FREE','js.myacc':'my account','js.out':'log out',
@@ -475,7 +543,15 @@
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'pwa.txt':'📲 Install GymGenio on your phone and open it like a real app.',
       'pwa.btn':'Install app',
-      'pwa.ios':'📲 To install it: tap Share ⬆️ below, then "Add to Home Screen".'
+      'pwa.ios':'📲 To install it: tap Share ⬆️ below, then "Add to Home Screen".',
+      /* calorie counter */
+      'cm.h':'📸 Calorie counter','cm.pro':'PRO',
+      'cm.sub':'Snap or upload a photo of your meal and the genie estimates its calories and macros.',
+      'cm.today':'Today','cm.btn':'📸 Analyze my meal','cm.load':'Reading your plate…',
+      'cm.kcal':'kcal','cm.mProt':'Protein','cm.mCarb':'Carbs','cm.mFat':'Fat',
+      'cm.conf':'Confidence','cm.confbaja':'low','cm.confmedia':'medium','cm.confalta':'high',
+      'cm.noFood':"Hmm, that doesn't look like food. Try a photo of your plate. 🍽️",
+      'cm.again':'📸 Analyze another meal','cm.todayH':'Today’s meals'
     }
   };
   let lang = 'en';
@@ -856,7 +932,7 @@
   // El iPhone no da ese aviso automático: hay que explicarle los 2 toques.
   if (!yaInstalada && /iphone|ipad|ipod/i.test(navigator.userAgent)) modoInstalar = 'ios';
 
-  function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); pintarInstalar(); }
+  function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida(); }
 
   /* ================= GENERAR ================= */
   async function generar(datos){
@@ -923,6 +999,113 @@
     generar(Object.assign({}, guardado.datos, { ajuste: v, idioma: lang }));
   };
 
+  /* ================= 📸 CONTADOR DE CALORÍAS ================= */
+  let comidasHoy = null;
+
+  // Achica la foto EN EL TELÉFONO antes de mandarla: más rápido y más barato.
+  function comprimirFoto(file){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const max = 1024;
+        let w = img.width, h = img.height;
+        if (w > max || h > max){ const r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error(t('js.err'))); };
+      img.src = url;
+    });
+  }
+
+  function pintarResultadoComida(a){
+    const box = $('comidaResult');
+    box.classList.remove('hidden');
+    if (!a || !a.esComida || a.calorias <= 0){
+      box.innerHTML = '<div class="cres"><p class="cres-nota">' + esc((a && a.nota) || t('cm.noFood')) + '</p></div>';
+      return;
+    }
+    const foods = (a.alimentos || []).map(f => '<span>' + esc(f) + '</span>').join('');
+    const conf = t('cm.conf' + a.confianza) || a.confianza;
+    box.innerHTML =
+      '<div class="cres">' +
+        '<div class="cres-kcal"><span class="n">' + a.calorias + '</span><span class="u">' + t('cm.kcal') + '</span></div>' +
+        '<div class="cres-macros">' +
+          '<div class="cmac"><div class="n">' + a.proteina + 'g</div><div class="l">' + t('cm.mProt') + '</div></div>' +
+          '<div class="cmac"><div class="n">' + a.carbos + 'g</div><div class="l">' + t('cm.mCarb') + '</div></div>' +
+          '<div class="cmac"><div class="n">' + a.grasa + 'g</div><div class="l">' + t('cm.mFat') + '</div></div>' +
+        '</div>' +
+        (foods ? '<div class="cres-foods">' + foods + '</div>' : '') +
+        (a.nota ? '<p class="cres-nota">' + esc(a.nota) + '</p>' : '') +
+        '<div class="cres-conf ' + (a.confianza === 'baja' ? 'baja' : '') + '">' + t('cm.conf') + ': ' + conf + '</div>' +
+      '</div>';
+  }
+
+  function pintarComida(){
+    const box = $('cajaComida');
+    if (!box) return;
+    // Solo Pro ve el contador.
+    if (!cuentaPro){ box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+
+    const hoy = $('comidaHoy'), lista = $('comidaLista');
+    const items = (comidasHoy && comidasHoy.items) || [];
+    if (comidasHoy && comidasHoy.total && items.length){
+      hoy.classList.remove('hidden');
+      $('hoyKcal').textContent = comidasHoy.total.calorias;
+      $('hoyMacros').innerHTML =
+        '<span>' + t('cm.mProt') + ' <b>' + comidasHoy.total.proteina + 'g</b></span>' +
+        '<span>' + t('cm.mCarb') + ' <b>' + comidasHoy.total.carbos + 'g</b></span>' +
+        '<span>' + t('cm.mFat') + ' <b>' + comidasHoy.total.grasa + 'g</b></span>';
+      lista.classList.remove('hidden');
+      lista.innerHTML = '<p class="sub" style="margin:0 0 6px">' + t('cm.todayH') + '</p>' +
+        items.map(it => '<div class="cl-row"><span class="cl-food">' + esc(it.alimentos || '') +
+          '</span><span class="cl-kcal">' + (Number(it.calorias) || 0) + ' ' + t('cm.kcal') + '</span></div>').join('');
+    } else {
+      hoy.classList.add('hidden');
+      lista.classList.add('hidden');
+    }
+  }
+
+  async function analizarComida(file){
+    $('comidaError').classList.add('hidden');
+    $('comidaResult').classList.add('hidden');
+    $('comidaCargando').classList.remove('hidden');
+    const btn = $('comidaBtn'); btn.disabled = true;
+    try {
+      const dataUrl = await comprimirFoto(file);
+      const headers = { 'content-type':'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const resp = await fetch('/api/comida', {
+        method:'POST', headers,
+        body: JSON.stringify({ imagen: dataUrl, idioma: lang, sessionId })
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || t('js.err'));
+      if (json.hoy) comidasHoy = json.hoy;
+      pintarResultadoComida(json.analisis);
+      pintarComida();
+      btn.textContent = t('cm.again');
+      $('comidaResult').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    } catch (err){
+      $('comidaError').textContent = err.message;
+      $('comidaError').classList.remove('hidden');
+    } finally {
+      $('comidaCargando').classList.add('hidden');
+      btn.disabled = false;
+    }
+  }
+
+  $('comidaBtn').onclick = () => $('comidaFile').click();
+  $('comidaFile').onchange = e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) analizarComida(f);
+    e.target.value = ''; // permite volver a elegir la MISMA foto
+  };
+
   /* ================= ARRANQUE ================= */
   let l0 = 'en';
   try { l0 = localStorage.getItem('gg_lang') || 'en'; } catch(e){}
@@ -939,6 +1122,13 @@
     try {
       const est = await (await fetch('/api/estado', { headers:{ Authorization:'Bearer ' + token } })).json();
       if (est && est.email){ userEmail = est.email; cuentaPro = !!est.pro; pintarCuenta(); }
+    } catch(e){}
+  }
+  // Si es Pro, traemos el total de comidas de hoy para mostrarlo al abrir.
+  if (token && cuentaPro){
+    try {
+      const cj = await (await fetch('/api/comida', { headers:{ Authorization:'Bearer ' + token } })).json();
+      if (cj && cj.hoy) comidasHoy = cj.hoy;
     } catch(e){}
   }
   pintarTodo();
