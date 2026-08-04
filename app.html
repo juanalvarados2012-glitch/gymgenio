@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GymGenio — Your training</title>
 <link rel="icon" href="/favicon-emblem.png" type="image/png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0A0A0B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GymGenio">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -237,6 +244,12 @@
 
   <div class="bar" id="cuentaBar"></div>
 
+  <!-- Invitación a instalar la app (solo aparece si se puede instalar) -->
+  <div class="bar hidden" id="instalarBar">
+    <span id="instalarTxt" style="flex:1"></span>
+    <button class="btn btn-acid btn-sm hidden" id="btnInstalar"></button>
+  </div>
+
   <!-- TABLERO -->
   <div class="dash hidden" id="dash">
     <div class="stat"><div class="big" id="stRacha">0</div><div class="cap" data-i18n="st.streak">Day streak</div></div>
@@ -442,7 +455,10 @@
       'js.upsellH':'¿Te gustó tu primer día?','js.upsellP':'Con GymGenio Pro recibes tu semana completa, tu plan de comidas y cambios ilimitados.',
       'js.upsellPro':'Activar Pro · $14.99/mes','js.upsellNew':'Crea tu cuenta y hazte Pro','js.err':'Algo salió mal.',
       'js.saved':'Guardado en este dispositivo','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
-      'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪'
+      'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
+      'pwa.txt':'📲 Instala GymGenio en tu teléfono y ábrela como app de verdad.',
+      'pwa.btn':'Instalar app',
+      'pwa.ios':'📲 Para instalarla: toca Compartir ⬆️ abajo y luego "Agregar a inicio".'
     },
     en:{
       'js.building':'Building…','js.free':'FREE','js.myacc':'my account','js.out':'log out',
@@ -455,7 +471,10 @@
       'js.upsellH':'Liked your first day?','js.upsellP':'GymGenio Pro gets you the full week, your meal plan and unlimited changes.',
       'js.upsellPro':'Go Pro · $14.99/mo','js.upsellNew':'Create your account and go Pro','js.err':'Something went wrong.',
       'js.saved':'Saved on this device','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
-      'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪'
+      'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
+      'pwa.txt':'📲 Install GymGenio on your phone and open it like a real app.',
+      'pwa.btn':'Install app',
+      'pwa.ios':'📲 To install it: tap Share ⬆️ below, then "Add to Home Screen".'
     }
   };
   let lang = 'en';
@@ -484,6 +503,7 @@
   const submit = $('submit'), cuentaBar = $('cuentaBar'), navCuenta = $('navCuenta');
   const dash = $('dash'), cajaAjuste = $('cajaAjuste'), cajaUpsell = $('cajaUpsell');
   const cajaPeso = $('cajaPeso'), sepNuevo = $('sepNuevo');
+  const instalarBar = $('instalarBar'), instalarTxt = $('instalarTxt'), btnInstalar = $('btnInstalar');
   const sessionId = new URLSearchParams(location.search).get('session_id') || '';
   let token = '', userEmail = '', cuentaPro = false, formAbierto = false;
 
@@ -797,7 +817,45 @@
     }
   }
 
-  function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); }
+  /* ================= INSTALAR LA APP ================= */
+  // El navegador avisa cuando la app se puede instalar. Ahí mostramos el botón.
+  let promptInstalar = null, modoInstalar = '';   // '' | 'boton' | 'ios'
+
+  function pintarInstalar(){
+    if (!modoInstalar){ instalarBar.classList.add('hidden'); return; }
+    instalarBar.classList.remove('hidden');
+    if (modoInstalar === 'ios'){
+      instalarTxt.textContent = t('pwa.ios');
+      btnInstalar.classList.add('hidden');
+    } else {
+      instalarTxt.textContent = t('pwa.txt');
+      btnInstalar.textContent = t('pwa.btn');
+      btnInstalar.classList.remove('hidden');
+    }
+  }
+
+  const yaInstalada = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    promptInstalar = e;
+    if (!yaInstalada){ modoInstalar = 'boton'; pintarInstalar(); }
+  });
+  window.addEventListener('appinstalled', () => {
+    promptInstalar = null; modoInstalar = ''; pintarInstalar();
+  });
+
+  btnInstalar.onclick = async () => {
+    if (!promptInstalar) return;
+    promptInstalar.prompt();
+    await promptInstalar.userChoice;
+    promptInstalar = null; modoInstalar = ''; pintarInstalar();
+  };
+
+  // El iPhone no da ese aviso automático: hay que explicarle los 2 toques.
+  if (!yaInstalada && /iphone|ipad|ipod/i.test(navigator.userAgent)) modoInstalar = 'ios';
+
+  function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); pintarInstalar(); }
 
   /* ================= GENERAR ================= */
   async function generar(datos){
@@ -883,6 +941,14 @@
     } catch(e){}
   }
   pintarTodo();
+</script>
+<script>
+  /* Enciende el ayudante que hace que GymGenio se pueda instalar como app. */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {});
+    });
+  }
 </script>
 </body>
 </html>
