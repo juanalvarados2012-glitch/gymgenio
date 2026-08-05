@@ -831,11 +831,20 @@
 
     // Rehacer el plan en el idioma que está viendo la app (traduce de verdad el contenido).
     const swap = $('btnLangSwap');
-    if (swap) swap.onclick = () => {
-      if (!guardado || !guardado.datos) return;
+    if (swap) swap.onclick = async () => {
+      if (!guardado) return;
+      // Plan viejo sin datos guardados: no lo podemos rehacer solos → abrimos el formulario.
+      if (!guardado.datos || !guardado.datos.objetivo){
+        formAbierto = true; pintarFormulario();
+        sepNuevo.scrollIntoView({ behavior:'smooth', block:'start' });
+        return;
+      }
+      swap.disabled = true;
+      swap.innerHTML = '⏳ ' + t('js.building');
       prog.ej = {}; prog.dias = {};          // el plan cambia: se reinician las marcas de ESTE plan
       guardar(K_PROG, prog);
-      generar(Object.assign({}, guardado.datos, { idioma: lang }));
+      await generar(Object.assign({}, guardado.datos, { idioma: lang }));
+      pintarPlan();                          // restaura el botón (si falló) o lo quita (si salió bien)
     };
 
     // abrir / cerrar días
@@ -977,6 +986,7 @@
     } catch (err){
       errorBox.textContent = err.message;
       errorBox.classList.remove('hidden');
+      errorBox.scrollIntoView({ behavior:'smooth', block:'center' });
     } finally {
       cargando.classList.add('hidden');
       submit.disabled = false;
