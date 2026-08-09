@@ -111,13 +111,10 @@ export default async function handler(req, res) {
     });
   }
 
-  // La llave secreta la lee Vercel de su caja fuerte. NUNCA está escrita aquí.
+  // Las llaves secretas las lee Vercel de su caja fuerte. NUNCA están escritas aquí.
+  // Pro usa Anthropic (Claude); gratis usa NVIDIA (Llama 3.3) — se validan más abajo,
+  // cada una solo cuando de verdad hace falta.
   const API_KEY = process.env.ANTHROPIC_API_KEY;
-  if (!API_KEY) {
-    return res.status(500).json({
-      error: 'Falta la llave. Tu papá debe agregar ANTHROPIC_API_KEY en Vercel → Settings → Environment Variables.'
-    });
-  }
 
   // 🧹 Limpiamos TODO lo que manda el navegador: recortamos los textos largos
   // (para que nadie infle el costo de IA ni "inyecte" instrucciones) y volvemos
@@ -161,12 +158,16 @@ export default async function handler(req, res) {
     ? '- No compartió edad, peso ni estatura (no los inventes ni los pidas: arma el plan igual).'
     : '- Did not share age, weight or height (do not invent them and do not ask: build the plan anyway).');
 
+  // 🎁 Gratis ahora da hasta 5 días de entreno (antes solo 1). Las comidas y
+  // los días 6-7 siguen siendo exclusivos de Pro.
+  const diasGratis = Math.min(dias, 5);
+
   let prompt;
 
   if (es) {
     const alcance = esPro
       ? `Genera el plan COMPLETO de ${dias} días de entrenamiento más un plan de comidas de un día (desayuno, almuerzo, cena y 1 snack), con porciones acordes a sus datos.`
-      : `Genera SOLO el primer día de entrenamiento como muestra gratuita. No incluyas plan de comidas. Al final, en el campo "nota", escribe que el plan completo de la semana y las comidas están en GymGenio Pro.`;
+      : `Genera ${diasGratis} día(s) de entrenamiento (esto es gratis: hasta 5 días). No incluyas plan de comidas. Al final, en el campo "nota", escribe que ${dias > 5 ? 'los días restantes de la semana y ' : ''}el plan de comidas están en GymGenio Pro.`;
     const cambio = ajuste
       ? `\nIMPORTANTE — la persona ya vio un plan y pide este cambio: "${ajuste}". Rehaz el plan aplicando ese cambio y menciónalo en el resumen.\n`
       : '';
@@ -217,7 +218,7 @@ Responde ÚNICAMENTE con un JSON válido (sin texto antes ni después, sin bloqu
   } else {
     const alcance = esPro
       ? `Generate the COMPLETE plan: ${dias} training days plus a one-day meal plan (breakfast, lunch, dinner and 1 snack), with portions that match their data.`
-      : `Generate ONLY the first training day as a free sample. Do NOT include a meal plan. At the end, in the "nota" field, say that the full week and the meal plan are part of GymGenio Pro.`;
+      : `Generate ${diasGratis} training day(s) — this is free: up to 5 days. Do NOT include a meal plan. At the end, in the "nota" field, say that ${dias > 5 ? 'the remaining days of the week and ' : ''}the meal plan are part of GymGenio Pro.`;
     const cambio = ajuste
       ? `\nIMPORTANT — this person already saw a plan and is asking for this change: "${ajuste}". Rebuild the plan applying that change and mention it in the summary.\n`
       : '';
@@ -267,37 +268,82 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
 }`;
   }
 
-  try {
-    const respuesta = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+  // 💰 Gratis usa NVIDIA (Llama 3.3 70B, barato/gratis) para poder dar 5 días
+  // sin quemar presupuesto. Pro sigue con Claude (mejor calidad + comidas).
+  const NVIDIA_KEY = process.env.NVIDIA_API_KEY;
+  if (!esPro && !NVIDIA_KEY) {
+    return res.status(500).json({
+      error: 'Falta la llave. Tu papá debe agregar NVIDIA_API_KEY en Vercel → Settings → Environment Variables.'
     });
+  }
+  if (esPro && !API_KEY) {
+    return res.status(500).json({
+      error: 'Falta la llave. Tu papá debe agregar ANTHROPIC_API_KEY en Vercel → Settings → Environment Variables.'
+    });
+  }
 
-    if (!respuesta.ok) {
-      const detalle = await respuesta.text();
-      console.error('Error de Anthropic:', detalle);
-      return res.status(502).json({
-        error: es ? 'El genio está descansando. Intenta de nuevo en un momento.'
-                  : 'The genie is taking a breather. Try again in a moment.'
+  try {
+    let texto;
+
+    if (esPro) {
+      const respuesta = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-5',
+          max_tokens: 8000,
+          messages: [{ role: 'user', content: prompt }]
+        })
       });
+
+      if (!respuesta.ok) {
+        const detalle = await respuesta.text();
+        console.error('Error de Anthropic:', detalle);
+        return res.status(502).json({
+          error: es ? 'El genio está descansando. Intenta de nuevo en un momento.'
+                    : 'The genie is taking a breather. Try again in a moment.'
+        });
+      }
+
+      const datos = await respuesta.json();
+
+      // Buscamos el texto en TODAS las cajitas de tipo "text" (no solo la primera).
+      texto = (datos.content || [])
+        .filter(function (b) { return b && b.type === 'text' && b.text; })
+        .map(function (b) { return b.text; })
+        .join('\n');
+    } else {
+      // NVIDIA NIM habla el mismo formato que OpenAI (chat/completions).
+      const respuesta = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          Authorization: 'Bearer ' + NVIDIA_KEY
+        },
+        body: JSON.stringify({
+          model: 'meta/llama-3.3-70b-instruct',
+          max_tokens: 4000,
+          temperature: 0.6,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!respuesta.ok) {
+        const detalle = await respuesta.text();
+        console.error('Error de NVIDIA:', detalle);
+        return res.status(502).json({
+          error: es ? 'El genio está descansando. Intenta de nuevo en un momento.'
+                    : 'The genie is taking a breather. Try again in a moment.'
+        });
+      }
+
+      const datos = await respuesta.json();
+      texto = (datos.choices && datos.choices[0] && datos.choices[0].message && datos.choices[0].message.content) || '';
     }
-
-    const datos = await respuesta.json();
-
-    // Buscamos el texto en TODAS las cajitas de tipo "text" (no solo la primera).
-    let texto = (datos.content || [])
-      .filter(function (b) { return b && b.type === 'text' && b.text; })
-      .map(function (b) { return b.text; })
-      .join('\n');
 
     texto = texto.replace(/```(?:json)?/gi, '').trim();
 
