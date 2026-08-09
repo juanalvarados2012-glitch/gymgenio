@@ -68,9 +68,47 @@ async function pagoRecienHecho(sessionId) {
   }
 }
 
+// 🛡️ LÍMITE POR IP: frena a los robots que quieran gastar tu presupuesto de IA.
+// Vive en la memoria de la función (se reinicia si Vercel la duerme), pero corta
+// en seco un bucle desde una misma IP. Es gratis y no necesita base de datos.
+const PETICIONES = new Map(); // ip -> [horas de cada intento]
+const VENTANA_MS = 60 * 1000; // 1 minuto
+const MAX_POR_VENTANA = 6;    // máximo 6 planes por minuto por IP
+
+function ipDe(req) {
+  const xf = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return xf || (req.socket && req.socket.remoteAddress) || 'desconocida';
+}
+
+function pasaLimite(ip) {
+  const ahora = Date.now();
+  if (PETICIONES.size > 5000) PETICIONES.clear(); // no dejar crecer la memoria
+  const previas = (PETICIONES.get(ip) || []).filter(t => ahora - t < VENTANA_MS);
+  if (previas.length >= MAX_POR_VENTANA) {
+    PETICIONES.set(ip, previas);
+    return false;
+  }
+  previas.push(ahora);
+  PETICIONES.set(ip, previas);
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  const cuerpo = req.body || {};
+  // El plan se escribe en el idioma que el usuario eligió en la página (inglés por defecto).
+  const es = cuerpo.idioma === 'es';
+  const sessionId = cuerpo.sessionId;
+
+  // 🛡️ Freno anti-robots ANTES de gastar un centavo de IA.
+  if (!pasaLimite(ipDe(req))) {
+    return res.status(429).json({
+      error: es ? 'Vas muy rápido. Espera unos segundos y vuelve a intentarlo.'
+                : 'You are going too fast. Wait a few seconds and try again.'
+    });
   }
 
   // La llave secreta la lee Vercel de su caja fuerte. NUNCA está escrita aquí.
@@ -81,13 +119,26 @@ export default async function handler(req, res) {
     });
   }
 
-  const {
-    objetivo, nivel, dias, minutos, equipo, restricciones,
-    edad, peso, estatura, sexo, ajuste, idioma, sessionId
-  } = req.body || {};
+  // 🧹 Limpiamos TODO lo que manda el navegador: recortamos los textos largos
+  // (para que nadie infle el costo de IA ni "inyecte" instrucciones) y volvemos
+  // los números a rangos con sentido.
+  const txt = (v, max) => (v == null ? '' : String(v).slice(0, max));
+  const num = (v, min, max) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : '';
+  };
 
-  // El plan se escribe en el idioma que el usuario eligió en la página (inglés por defecto).
-  const es = idioma === 'es';
+  const objetivo     = txt(cuerpo.objetivo, 200);
+  const nivel        = txt(cuerpo.nivel, 40);
+  const dias         = num(cuerpo.dias, 1, 7);
+  const minutos      = num(cuerpo.minutos, 5, 180);
+  const equipo       = txt(cuerpo.equipo, 200);
+  const restricciones = txt(cuerpo.restricciones, 400);
+  const edad         = num(cuerpo.edad, 10, 100);
+  const peso         = num(cuerpo.peso, 25, 400);
+  const estatura     = num(cuerpo.estatura, 100, 250);
+  const sexo         = txt(cuerpo.sexo, 20);
+  const ajuste       = txt(cuerpo.ajuste, 400);
 
   if (!objetivo || !nivel || !dias || !minutos) {
     return res.status(400).json({

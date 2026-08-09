@@ -181,45 +181,69 @@ export default async function handler(req, res) {
 
   const prompt = es
     ? `Eres el nutricionista visual de GymGenio. Te muestro la FOTO de una comida.
-Míralas con cuidado y estima los valores para TODO lo que se ve en el plato (porción completa).
+Tu trabajo es estimar las calorías LO MÁS PRECISO POSIBLE. Para lograrlo, piensa alimento por alimento ANTES de dar el total.
+
+Cómo estimar el tamaño de la porción (esto es lo más importante para acertar):
+- Usa objetos de referencia visibles para calcular el tamaño: un plato normal mide ~26 cm, un tenedor ~19 cm, una cuchara ~15 cm, una lata ~12 cm de alto, una mano cerrada ~1 taza.
+- Estima los GRAMOS de cada alimento por separado, luego sus kcal, y al final SUMA.
+- Cuenta las grasas escondidas que no se ven pero casi siempre están: aceite de cocina, mantequilla, aderezos, salsas, azúcar. Súmalas de forma realista (una comida cocinada casi nunca es "limpia").
+- Usa densidades calóricas estándar por alimento.
 
 Reglas:
-- Estima de forma realista. Si hay varios alimentos, súmalos.
-- Calorías en kcal (número entero). Proteína, carbohidratos y grasa en GRAMOS (números enteros).
-- Si NO es comida (una persona, un objeto, etc.), pon "esComida": false y todo en 0.
-- Si la foto es borrosa o no se ve bien la porción, baja la "confianza" y dilo amablemente en "nota".
-- Sé breve y motivador en la nota. Nada de asesoría médica.
+- Calorías en kcal (entero). Proteína, carbohidratos y grasa en GRAMOS (enteros).
+- Da también un RANGO honesto (rangoMin y rangoMax) que refleje tu incertidumbre. Si la porción no se ve clara, haz el rango más ancho y baja la "confianza".
+- Si NO es comida (persona, objeto, etc.), pon "esComida": false y todo en 0.
+- Nota breve y motivadora. Nada de asesoría médica.
 
 Responde ÚNICAMENTE con un JSON válido (sin texto antes ni después, sin bloques de código) con esta forma exacta:
 {
   "esComida": true,
-  "alimentos": ["arroz", "pollo a la plancha", "ensalada"],
+  "detalle": [
+    { "nombre": "pollo a la plancha", "gramos": 150, "kcal": 250 },
+    { "nombre": "arroz blanco", "gramos": 180, "kcal": 235 },
+    { "nombre": "ensalada con aceite", "gramos": 90, "kcal": 135 }
+  ],
+  "alimentos": ["pollo a la plancha", "arroz blanco", "ensalada con aceite"],
   "calorias": 620,
+  "rangoMin": 540,
+  "rangoMax": 720,
   "proteina": 45,
   "carbos": 55,
   "grasa": 18,
-  "confianza": "alta",
+  "confianza": "media",
   "nota": "Buen balance de proteína. Ojo con el aceite de la ensalada."
 }`
     : `You are GymGenio's visual nutritionist. I'm showing you a PHOTO of a meal.
-Look carefully and estimate the values for EVERYTHING on the plate (full portion).
+Your job is to estimate the calories AS ACCURATELY AS POSSIBLE. To do that, reason food by food BEFORE giving a total.
+
+How to size the portion (this is what matters most for accuracy):
+- Use visible reference objects to gauge size: a normal plate is ~26 cm, a fork ~19 cm, a spoon ~15 cm, a can ~12 cm tall, a closed fist ~1 cup.
+- Estimate the GRAMS of each food separately, then its kcal, and SUM at the end.
+- Account for hidden fats you can't see but are almost always there: cooking oil, butter, dressings, sauces, sugar. Add them realistically (a cooked meal is rarely "clean").
+- Use standard calorie densities per food.
 
 Rules:
-- Estimate realistically. If there are several foods, add them up.
 - Calories in kcal (whole number). Protein, carbs and fat in GRAMS (whole numbers).
+- Also give an honest RANGE (rangoMin and rangoMax) reflecting your uncertainty. If the portion is unclear, widen the range and lower "confianza".
 - If it is NOT food (a person, an object, etc.), set "esComida": false and everything to 0.
-- If the photo is blurry or the portion is unclear, lower "confianza" and say so kindly in "nota".
-- Keep the note short and motivating. No medical advice.
+- Short, motivating note. No medical advice.
 
 Reply with ONLY a valid JSON object (no text before or after, no code fences) with exactly this shape:
 {
   "esComida": true,
-  "alimentos": ["rice", "grilled chicken", "salad"],
+  "detalle": [
+    { "nombre": "grilled chicken", "gramos": 150, "kcal": 250 },
+    { "nombre": "white rice", "gramos": 180, "kcal": 235 },
+    { "nombre": "salad with oil", "gramos": 90, "kcal": 135 }
+  ],
+  "alimentos": ["grilled chicken", "white rice", "salad with oil"],
   "calorias": 620,
+  "rangoMin": 540,
+  "rangoMax": 720,
   "proteina": 45,
   "carbos": 55,
   "grasa": 18,
-  "confianza": "alta",
+  "confianza": "media",
   "nota": "Nice protein balance. Watch the oil on the salad."
 }`;
 
@@ -233,7 +257,7 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 1200,
+        max_tokens: 1600,
         messages: [{
           role: 'user',
           content: [
@@ -277,10 +301,38 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
 
     // Limpiamos los números para que siempre sean enteros >= 0.
     const ent = v => Math.max(0, Math.round(Number(v) || 0));
+
+    // Desglose por alimento (nombre + gramos + kcal). Es lo que da precisión.
+    const detalle = Array.isArray(a.detalle)
+      ? a.detalle.slice(0, 12).map(d => ({
+          nombre: String((d && d.nombre) || '').slice(0, 60),
+          gramos: ent(d && d.gramos),
+          kcal: ent(d && d.kcal)
+        })).filter(d => d.nombre)
+      : [];
+
+    // Los nombres para los chips y el historial. Si no vinieron, los sacamos del desglose.
+    const alimentos = (Array.isArray(a.alimentos) && a.alimentos.length)
+      ? a.alimentos.slice(0, 12).map(String)
+      : detalle.map(d => d.nombre);
+
+    const calorias = ent(a.calorias);
+
+    // Rango honesto. Si la IA no lo dio o vino al revés, lo armamos como ±20%.
+    let rangoMin = ent(a.rangoMin);
+    let rangoMax = ent(a.rangoMax);
+    if (!(rangoMin > 0) || !(rangoMax > 0) || rangoMin > rangoMax) {
+      rangoMin = Math.round(calorias * 0.8);
+      rangoMax = Math.round(calorias * 1.2);
+    }
+
     const analisis = {
       esComida: a.esComida !== false,
-      alimentos: Array.isArray(a.alimentos) ? a.alimentos.slice(0, 12).map(String) : [],
-      calorias: ent(a.calorias),
+      detalle,
+      alimentos,
+      calorias,
+      rangoMin,
+      rangoMax,
       proteina: ent(a.proteina),
       carbos: ent(a.carbos),
       grasa: ent(a.grasa),

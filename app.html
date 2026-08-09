@@ -160,6 +160,10 @@
   .cres-kcal{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
   .cres-kcal .n{font-family:var(--display);font-size:2.8rem;line-height:1;color:var(--acid)}
   .cres-kcal .u{font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .cres-kcal .u em{font-style:normal;text-transform:none;letter-spacing:0;opacity:.75}
+  .cres-range{font-size:.82rem;color:var(--muted);margin:-8px 0 14px}
+  .cres-det{margin-bottom:12px}
+  .cres-det-h{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
   .cres-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
   .cmac{background:var(--panel);padding:12px 8px;text-align:center}
   .cmac .n{font-weight:800;font-size:1.15rem;color:var(--text)}
@@ -170,10 +174,10 @@
   .cres-conf{font-size:.72rem;color:var(--muted);margin-top:8px}
   .cres-conf.baja{color:#E9B949}
   .comida-lista{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-  .comida-lista .cl-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:.85rem;border-bottom:1px solid var(--line)}
-  .comida-lista .cl-row:last-child{border-bottom:none}
-  .comida-lista .cl-food{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .comida-lista .cl-kcal{color:var(--acid);font-weight:700;white-space:nowrap}
+  .comida-lista .cl-row,.cres-det .cl-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:.85rem;border-bottom:1px solid var(--line)}
+  .comida-lista .cl-row:last-child,.cres-det .cl-row:last-child{border-bottom:none}
+  .comida-lista .cl-food,.cres-det .cl-food{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .comida-lista .cl-kcal,.cres-det .cl-kcal{color:var(--acid);font-weight:700;white-space:nowrap}
   .spark{flex:1;min-width:120px;height:44px}
 
   /* ---------- TEMPORIZADOR ---------- */
@@ -535,7 +539,8 @@
       'cm.kcal':'kcal','cm.mProt':'Proteína','cm.mCarb':'Carbos','cm.mFat':'Grasa',
       'cm.conf':'Confianza','cm.confbaja':'baja','cm.confmedia':'media','cm.confalta':'alta',
       'cm.noFood':'Mmm, eso no parece comida. Prueba con una foto de tu plato. 🍽️',
-      'cm.again':'📸 Analizar otra comida','cm.todayH':'Comidas de hoy'
+      'cm.again':'📸 Analizar otra comida','cm.todayH':'Comidas de hoy',
+      'cm.est':'estimado','cm.range':'rango','cm.breakdown':'Desglose'
     },
     en:{
       'js.building':'Building…','js.free':'FREE','js.myacc':'my account','js.out':'log out',
@@ -560,7 +565,8 @@
       'cm.kcal':'kcal','cm.mProt':'Protein','cm.mCarb':'Carbs','cm.mFat':'Fat',
       'cm.conf':'Confidence','cm.confbaja':'low','cm.confmedia':'medium','cm.confalta':'high',
       'cm.noFood':"Hmm, that doesn't look like food. Try a photo of your plate. 🍽️",
-      'cm.again':'📸 Analyze another meal','cm.todayH':'Today’s meals'
+      'cm.again':'📸 Analyze another meal','cm.todayH':'Today’s meals',
+      'cm.est':'estimate','cm.range':'range','cm.breakdown':'Breakdown'
     }
   };
   let lang = 'en';
@@ -1059,17 +1065,36 @@
       box.innerHTML = '<div class="cres"><p class="cres-nota">' + esc((a && a.nota) || t('cm.noFood')) + '</p></div>';
       return;
     }
-    const foods = (a.alimentos || []).map(f => '<span>' + esc(f) + '</span>').join('');
     const conf = t('cm.conf' + a.confianza) || a.confianza;
+
+    // Rango honesto (si vino del servidor). Deja claro que es un estimado, no un número exacto.
+    const rango = (a.rangoMin && a.rangoMax)
+      ? '<div class="cres-range">' + t('cm.range') + ' ' + a.rangoMin + '–' + a.rangoMax + ' ' + t('cm.kcal') + '</div>'
+      : '';
+
+    // Desglose por alimento (nombre · gramos · kcal). Es lo que hace que se sienta preciso.
+    const det = (a.detalle || []).filter(d => d && d.nombre);
+    let desglose = '';
+    if (det.length){
+      desglose = '<div class="cres-det"><p class="cres-det-h">' + t('cm.breakdown') + '</p>' +
+        det.map(d => '<div class="cl-row"><span class="cl-food">' + esc(d.nombre) +
+          (d.gramos ? ' · ' + d.gramos + ' g' : '') + '</span><span class="cl-kcal">' +
+          (Number(d.kcal) || 0) + ' ' + t('cm.kcal') + '</span></div>').join('') + '</div>';
+    } else {
+      const foods = (a.alimentos || []).map(f => '<span>' + esc(f) + '</span>').join('');
+      desglose = foods ? '<div class="cres-foods">' + foods + '</div>' : '';
+    }
+
     box.innerHTML =
       '<div class="cres">' +
-        '<div class="cres-kcal"><span class="n">' + a.calorias + '</span><span class="u">' + t('cm.kcal') + '</span></div>' +
+        '<div class="cres-kcal"><span class="n">≈ ' + a.calorias + '</span><span class="u">' + t('cm.kcal') + ' <em>(' + t('cm.est') + ')</em></span></div>' +
+        rango +
         '<div class="cres-macros">' +
           '<div class="cmac"><div class="n">' + a.proteina + 'g</div><div class="l">' + t('cm.mProt') + '</div></div>' +
           '<div class="cmac"><div class="n">' + a.carbos + 'g</div><div class="l">' + t('cm.mCarb') + '</div></div>' +
           '<div class="cmac"><div class="n">' + a.grasa + 'g</div><div class="l">' + t('cm.mFat') + '</div></div>' +
         '</div>' +
-        (foods ? '<div class="cres-foods">' + foods + '</div>' : '') +
+        desglose +
         (a.nota ? '<p class="cres-nota">' + esc(a.nota) + '</p>' : '') +
         '<div class="cres-conf ' + (a.confianza === 'baja' ? 'baja' : '') + '">' + t('cm.conf') + ': ' + conf + '</div>' +
       '</div>';
