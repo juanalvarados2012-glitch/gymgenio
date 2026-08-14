@@ -39,6 +39,7 @@
   .btn-line{background:transparent;color:var(--text);border:1px solid var(--line)}
   .btn-line:hover{border-color:var(--acid);color:var(--acid)}
   .btn-sm{padding:.6em 1.1em;font-size:.83rem}
+  :focus-visible{outline:2px solid var(--acid);outline-offset:3px}
 
   nav{position:sticky;top:0;z-index:30;background:rgba(10,10,11,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
   nav .wrap{max-width:1120px;display:flex;align-items:center;justify-content:space-between;height:70px;gap:12px}
@@ -71,6 +72,11 @@
   .stat .big small{font-family:var(--body);font-size:.8rem;font-weight:600;color:var(--muted)}
   .stat .cap{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
   @media(max-width:520px){.stat .big{font-size:1.9rem}.stat{padding:16px 8px}.stat .cap{font-size:.6rem;letter-spacing:.08em}}
+  @media(max-width:480px){
+    .plan-top{padding:20px 16px}.dia-head{padding:16px 14px;gap:9px}.dia-cuerpo{padding-left:14px;padding-right:14px}
+    .dia-estado{font-size:.62rem}.ej{gap:8px}.ej-der{flex-direction:column;align-items:flex-end;gap:4px}
+    .ej-der .series{font-size:.77rem}.desc{font-size:.68rem}.bloque{padding-left:16px;padding-right:16px}
+  }
 
   /* ---------- PLAN ---------- */
   .plan{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:20px}
@@ -259,7 +265,7 @@
   </div>
 
   <!-- PLAN GUARDADO / RECIÉN HECHO -->
-  <div id="resultado" class="hidden"></div>
+  <div id="resultado" class="hidden" aria-live="polite"></div>
 
   <!-- CAJA DE AJUSTE -->
   <div id="cajaAjuste" class="ajuste hidden">
@@ -393,13 +399,13 @@
     <button type="submit" class="btn btn-acid" id="submit" data-i18n="f.submit">Build my plan</button>
   </form>
 
-  <div id="cargando" class="status hidden">
+  <div id="cargando" class="status hidden" role="status" aria-live="polite">
     <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
     <b data-i18n="load.b">The genie is working</b>
     <span data-i18n="load.s">This takes a few seconds.</span>
   </div>
 
-  <div id="error" class="error hidden"></div>
+  <div id="error" class="error hidden" role="alert"></div>
 
   <div class="aviso"><b data-i18n="disc.b">⚠ Health notice:</b> <span data-i18n="disc.t">GymGenio provides workouts and food suggestions for informational and motivational purposes. It is not medical advice and does not replace a doctor, dietitian or certified trainer. Talk to a doctor before starting, especially if you have a health condition, are pregnant, or are under 18. You train at your own risk.</span></div>
   <p class="contacto"><span data-i18n="foot.q">Problems or questions?</span> <a href="mailto:juanalvarados2012@gmail.com?subject=GymGenio%20help">juanalvarados2012@gmail.com</a></p>
@@ -457,6 +463,7 @@
       'js.upsellPro':'Activar Pro · $14.99/mes','js.upsellNew':'Crea tu cuenta y hazte Pro','js.err':'Algo salió mal.',
       'js.saved':'Guardado en este dispositivo','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
+      'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
       'pwa.txt':'📲 Instala GymGenio en tu teléfono y ábrela como app de verdad.',
       'pwa.btn':'Instalar app',
       'pwa.ios':'📲 Para instalarla: toca Compartir ⬆️ abajo y luego "Agregar a inicio".'
@@ -473,6 +480,7 @@
       'js.upsellPro':'Go Pro · $14.99/mo','js.upsellNew':'Create your account and go Pro','js.err':'Something went wrong.',
       'js.saved':'Saved on this device','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
+      'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
       'pwa.txt':'📲 Install GymGenio on your phone and open it like a real app.',
       'pwa.btn':'Install app',
       'pwa.ios':'📲 To install it: tap Share ⬆️ below, then "Add to Home Screen".'
@@ -486,27 +494,101 @@
   document.querySelectorAll('[data-i18n-ph]').forEach(el => basePh[el.dataset.i18nPh] = el.placeholder);
 
   /* ================= MEMORIA LOCAL ================= */
-  const K_PLAN = 'gg_plan', K_PROG = 'gg_prog', K_PESO = 'gg_peso';
-  const leer = (k, x) => { try { return JSON.parse(localStorage.getItem(k)) ?? x; } catch(e){ return x; } };
-  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+  const K_PLAN = 'gg_plan', K_PROG = 'gg_prog', K_PESO = 'gg_peso', K_DRAFT = 'gg_draft';
+  let storageScope = 'guest';
+  const scopedKey = k => storageScope === 'guest' ? k : k + ':' + storageScope;
+  const leer = (k, x) => { try { return JSON.parse(localStorage.getItem(scopedKey(k))) ?? x; } catch(e){ return x; } };
+  const guardar = (k, v) => { try { localStorage.setItem(scopedKey(k), JSON.stringify(v)); } catch(e){} };
   const hoyISO = () => new Date().toISOString().slice(0,10);
+  const leerProgreso = () => {
+    const value = leer(K_PROG, null) || {};
+    return {
+      ej: value.ej && typeof value.ej === 'object' && !Array.isArray(value.ej) ? value.ej : {},
+      dias: value.dias && typeof value.dias === 'object' && !Array.isArray(value.dias) ? value.dias : {},
+      sesiones: Array.isArray(value.sesiones) ? value.sesiones.filter(f => typeof f === 'string') : []
+    };
+  };
+  const leerPesos = () => {
+    const value = leer(K_PESO, []);
+    return Array.isArray(value) ? value.filter(p => p && typeof p.f === 'string' && Number.isFinite(Number(p.kg))) : [];
+  };
 
   // plan  = { plan, esPro, datos, creado }
   // prog  = { ej: {"0-2":true}, dias: {"0":"2026-08-03"}, sesiones:["2026-08-03"] }
   // pesos = [{f:"2026-08-03", kg:78}]
   let guardado = leer(K_PLAN, null);
-  let prog = leer(K_PROG, { ej:{}, dias:{}, sesiones:[] });
-  let pesos = leer(K_PESO, []);
+  let prog = leerProgreso();
+  let pesos = leerPesos();
+
+  function cargarMemoria(scope){
+    const nuevoScope = scope || 'guest';
+    if (storageScope === nuevoScope) return;
+    storageScope = nuevoScope;
+    guardado = leer(K_PLAN, null);
+    prog = leerProgreso();
+    pesos = leerPesos();
+    formAbierto = false;
+    form.reset();
+    pintarUnidades();
+    restaurarBorrador();
+  }
+
+  const CAMPOS_BORRADOR = ['objetivo','nivel','dias','minutos','equipo','edad','sexo','peso','estatura','estaturaFt','estaturaIn','restricciones'];
+
+  function guardarBorrador(){
+    const borrador = {};
+    CAMPOS_BORRADOR.forEach(id => { const el = document.getElementById(id); if (el) borrador[id] = el.value; });
+    guardar(K_DRAFT, borrador);
+  }
+
+  function restaurarBorrador(){
+    const borrador = leer(K_DRAFT, null);
+    if (!borrador || typeof borrador !== 'object') return;
+    CAMPOS_BORRADOR.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && borrador[id] !== undefined) el.value = borrador[id];
+    });
+  }
+
+  function limpiarBorrador(){
+    try { localStorage.removeItem(scopedKey(K_DRAFT)); } catch(e){}
+  }
 
   /* ================= ELEMENTOS ================= */
   const $ = id => document.getElementById(id);
   const form = $('form'), cargando = $('cargando'), errorBox = $('error'), resultado = $('resultado');
-  const submit = $('submit'), cuentaBar = $('cuentaBar'), navCuenta = $('navCuenta');
+  const submit = $('submit'), ajusteBtn = $('ajusteBtn'), cuentaBar = $('cuentaBar'), navCuenta = $('navCuenta');
   const dash = $('dash'), cajaAjuste = $('cajaAjuste'), cajaUpsell = $('cajaUpsell');
   const cajaPeso = $('cajaPeso'), sepNuevo = $('sepNuevo');
   const instalarBar = $('instalarBar'), instalarTxt = $('instalarTxt'), btnInstalar = $('btnInstalar');
   const sessionId = new URLSearchParams(location.search).get('session_id') || '';
-  let token = '', userEmail = '', cuentaPro = false, formAbierto = false;
+  let token = '', userEmail = '', userId = '', cuentaPro = false, formAbierto = false;
+
+  function limpiarUrlActual(url){
+    if (!window.history || !window.history.replaceState) return;
+    window.history.replaceState(null, document.title, url.pathname + (url.search ? url.search : '') + url.hash);
+  }
+
+  function limpiarTokensUrl(){
+    if (!window.history || !window.history.replaceState) return;
+    try {
+      const url = new URL(location.href);
+      const tieneToken = /(?:^|[&#?])(access_token|refresh_token|code)=/i.test(url.hash + url.search);
+      if (!tieneToken) return;
+      url.hash = '';
+      ['access_token','refresh_token','expires_at','expires_in','token_type','type','code'].forEach(k => url.searchParams.delete(k));
+      limpiarUrlActual(url);
+    } catch(e){}
+  }
+
+  function limpiarSessionUrl(){
+    if (!sessionId || !window.history || !window.history.replaceState) return;
+    try {
+      const url = new URL(location.href);
+      url.searchParams.delete('session_id');
+      limpiarUrlActual(url);
+    } catch(e){}
+  }
 
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -526,7 +608,7 @@
 
   document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
     const el = $(c.dataset.target);
-    if (el) el.value = (lang === 'es' ? c.dataset.es : c.dataset.en);
+    if (el) { el.value = (lang === 'es' ? c.dataset.es : c.dataset.en); guardarBorrador(); }
   });
 
   /* ================= UNIDADES (kg/lb, cm/ft-in) ================= */
@@ -547,6 +629,7 @@
     try { localStorage.setItem('gg_upeso', uPeso); } catch(e){}
     if (kgActual) $('peso').value = uPeso === 'kg' ? kgActual : Math.round(kgActual / 0.453592 * 10) / 10;
     pintarUnidades();
+    guardarBorrador();
   });
   document.querySelectorAll('#uAltura button').forEach(b => b.onclick = () => {
     if (b.dataset.u === uAltura) return;
@@ -562,6 +645,7 @@
       }
     }
     pintarUnidades();
+    guardarBorrador();
   });
 
   function pesoEnKg(){
@@ -580,6 +664,9 @@
     return Math.round((ft * 12 + inch) * 2.54);
   }
   pintarUnidades();
+  restaurarBorrador();
+  form.addEventListener('input', guardarBorrador);
+  form.addEventListener('change', guardarBorrador);
 
   /* ================= CUENTA ================= */
   function pintarCuenta(){
@@ -678,9 +765,13 @@
 
   /* ================= PLAN ================= */
   function pintarPlan(){
-    if (!guardado){ resultado.classList.add('hidden'); cajaAjuste.classList.add('hidden'); cajaUpsell.classList.add('hidden'); return; }
+    if (!guardado || !guardado.plan || !Array.isArray(guardado.plan.dias)){
+      if (guardado){ guardado = null; try { localStorage.removeItem(scopedKey(K_PLAN)); } catch(e){} }
+      resultado.classList.add('hidden'); cajaAjuste.classList.add('hidden'); cajaUpsell.classList.add('hidden'); return;
+    }
     const { plan, esPro } = guardado;
-    const dias = plan.dias || [];
+    const dias = plan.dias;
+    if (!dias.length){ resultado.classList.add('hidden'); cajaAjuste.classList.add('hidden'); cajaUpsell.classList.add('hidden'); return; }
     const siguiente = dias.findIndex((d, i) => !prog.dias[i]);
 
     let h = '<div class="plan"><div class="plan-top">';
@@ -699,8 +790,9 @@
       const listo = !!prog.dias[i];
       const esHoy = !listo && i === siguiente;
 
+      const cuerpoId = 'dia-cuerpo-' + i;
       h += '<div class="dia' + (listo ? ' hecho' : '') + (esHoy ? ' abierto' : '') + '" data-dia="' + i + '">';
-      h += '<div class="dia-head"><span class="dia-num">' + String(i+1).padStart(2,'0') + '</span>' +
+      h += '<div class="dia-head" role="button" tabindex="0" aria-expanded="' + (esHoy ? 'true' : 'false') + '" aria-controls="' + cuerpoId + '"><span class="dia-num">' + String(i+1).padStart(2,'0') + '</span>' +
            '<div class="dia-info"><h3>' + esc(d.nombre) + '</h3>' +
            '<div class="meta">' + (d.duracion ? esc(d.duracion) + ' · ' : '') +
            ejs.length + ' ' + t('js.exercises') + (hechos && !listo ? ' · ' + hechos + '/' + ejs.length : '') + '</div></div>';
@@ -708,15 +800,15 @@
       else if (esHoy) h += '<span class="dia-estado hoy">' + t('js.today') + '</span>';
       h += '<span class="chev">▶</span></div>';
 
-      h += '<div class="dia-cuerpo"><div class="prog"><span style="width:' + pct + '%"></span></div>';
+      h += '<div class="dia-cuerpo" id="' + cuerpoId + '"><div class="prog"><span style="width:' + pct + '%"></span></div>';
       ejs.forEach((ej, j) => {
         const on = !!prog.ej[i + '-' + j];
         h += '<div class="ej">' +
-             '<button class="tick' + (on ? ' on' : '') + '" data-ej="' + i + '-' + j + '">✓</button>' +
+             '<button type="button" class="tick' + (on ? ' on' : '') + '" data-ej="' + i + '-' + j + '" aria-label="' + esc(on ? t('js.unmark') : t('js.mark')) + '">✓</button>' +
              '<div class="ej-txt' + (on ? ' tachado' : '') + '"><b>' + esc(ej.nombre) + '</b>' +
              (ej.nota ? '<em>' + esc(ej.nota) + '</em>' : '') + '</div>' +
              '<div class="ej-der"><span class="series">' + esc(ej.series || '') + '</span>' +
-             '<button class="desc" data-desc="60">' + t('js.rest') + '</button></div></div>';
+             '<button type="button" class="desc" data-desc="60" aria-label="' + esc(t('js.restLabel')) + '">' + t('js.rest') + '</button></div></div>';
       });
       h += '<button class="btn ' + (listo ? 'btn-line' : 'btn-acid') + ' btn-sm" style="margin-top:16px" data-fin="' + i + '">' +
            (listo ? t('js.undo') : t('js.finish')) + '</button>';
@@ -743,7 +835,14 @@
 
     // abrir / cerrar días
     resultado.querySelectorAll('.dia-head').forEach(el => {
-      el.onclick = () => el.parentElement.classList.toggle('abierto');
+      el.onclick = () => {
+        const dia = el.parentElement;
+        const abierto = dia.classList.toggle('abierto');
+        el.setAttribute('aria-expanded', String(abierto));
+      };
+      el.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+      };
     });
     // marcar ejercicio
     resultado.querySelectorAll('.tick').forEach(b => {
@@ -755,7 +854,11 @@
         pintarPlan();
         const d = k.split('-')[0];
         const nodo = resultado.querySelector('[data-dia="' + d + '"]');
-        if (nodo) nodo.classList.add('abierto');
+        if (nodo){
+          nodo.classList.add('abierto');
+          const cabeza = nodo.querySelector('.dia-head');
+          if (cabeza) cabeza.setAttribute('aria-expanded', 'true');
+        }
       };
     });
     // descanso
@@ -859,31 +962,47 @@
   function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); pintarInstalar(); }
 
   /* ================= GENERAR ================= */
-  async function generar(datos){
+  let generando = false;
+  async function generar(datos, reiniciarProgreso){
+    if (generando) return;
+    generando = true;
     errorBox.classList.add('hidden');
     cargando.classList.remove('hidden');
+    form.setAttribute('aria-busy', 'true');
     submit.disabled = true;
+    ajusteBtn.disabled = true;
     const txtOriginal = submit.textContent;
     submit.textContent = t('js.building');
     const headers = { 'content-type':'application/json' };
     if (token) headers['Authorization'] = 'Bearer ' + token;
     try {
       const resp = await fetch('/api/plan', { method:'POST', headers, body: JSON.stringify(datos) });
-      const json = await resp.json();
+      let json;
+      try { json = await resp.json(); } catch(e) { json = {}; }
       if (!resp.ok) throw new Error(json.error || t('js.err'));
+      if (!json.plan || !Array.isArray(json.plan.dias) || !json.plan.dias.length) throw new Error(t('js.err'));
+      if (reiniciarProgreso){
+        prog = { ej:{}, dias:{}, sesiones: (prog.sesiones || []) };
+        guardar(K_PROG, prog);
+      }
       guardado = { plan: json.plan, esPro: !!json.esPro, datos, creado: hoyISO() };
       guardar(K_PLAN, guardado);
+      limpiarBorrador();
+      limpiarSessionUrl();
       if (json.esPro && !cuentaPro){ cuentaPro = true; pintarCuenta(); }
       formAbierto = false;
       pintarTodo();
       resultado.scrollIntoView({ behavior:'smooth', block:'start' });
     } catch (err){
-      errorBox.textContent = err.message;
+      errorBox.textContent = err && err.message ? err.message : t('js.err');
       errorBox.classList.remove('hidden');
     } finally {
       cargando.classList.add('hidden');
+      form.removeAttribute('aria-busy');
       submit.disabled = false;
+      ajusteBtn.disabled = false;
       submit.textContent = txtOriginal;
+      generando = false;
     }
   }
 
@@ -891,13 +1010,13 @@
     let min = $('minutos').value;
     if (!min || isNaN(min) || Number(min) < 5) min = '20';
     return Object.assign({
-      objetivo: $('objetivo').value,
+      objetivo: $('objetivo').value.trim(),
       nivel: $('nivel').value,
       dias: $('dias').value,
       minutos: String(min),
-      equipo: $('equipo').value,
-      restricciones: $('restricciones').value,
-      edad: $('edad').value,
+      equipo: $('equipo').value.trim(),
+      restricciones: $('restricciones').value.trim(),
+      edad: $('edad').value.trim(),
       peso: pesoEnKg() || '',
       estatura: alturaEnCm() || '',
       sexo: $('sexo').value,
@@ -909,18 +1028,14 @@
   form.addEventListener('submit', e => {
     e.preventDefault();
     if (guardado && !confirm(t('js.confirmNew'))) return;
-    prog = { ej:{}, dias:{}, sesiones: (prog.sesiones || []) }; // el historial de entrenos NO se borra
-    guardar(K_PROG, prog);
-    generar(datosDelForm());
+    generar(datosDelForm(), true);
   });
 
   $('ajusteBtn').onclick = () => {
     const v = $('ajusteInput').value.trim();
     if (!v || !guardado) return;
-    prog.ej = {}; prog.dias = {};   // el plan cambia: se reinician las marcas de ESTE plan
-    guardar(K_PROG, prog);
     $('ajusteInput').value = '';
-    generar(Object.assign({}, guardado.datos, { ajuste: v, idioma: lang }));
+    generar(Object.assign({}, guardado.datos || {}, { ajuste: v, idioma: lang }), true);
   };
 
   /* ================= ARRANQUE ================= */
@@ -933,7 +1048,33 @@
     const cfg = await (await fetch('/api/config')).json();
     if (cfg.url) sb = createClient(cfg.url, cfg.key, { auth:{ persistSession:true, autoRefreshToken:true } });
   } catch(e){}
-  if (sb) { try { const s = (await sb.auth.getSession()).data.session; if (s && s.user){ token = s.access_token; userEmail = s.user.email; } } catch(e){} }
+  if (sb) {
+    try {
+      const s = (await sb.auth.getSession()).data.session;
+      limpiarTokensUrl();
+      if (s && s.user){
+        token = s.access_token;
+        userEmail = s.user.email;
+        userId = s.user.id || '';
+        cargarMemoria('account:' + userId);
+      }
+    } catch(e){}
+  }
+  if (sb) {
+    try {
+      sb.auth.onAuthStateChange((_event, s) => {
+        token = s && s.access_token ? s.access_token : '';
+        userEmail = s && s.user ? s.user.email : '';
+        userId = s && s.user ? (s.user.id || '') : '';
+        const nuevoScope = s && s.user ? 'account:' + userId : 'guest';
+        const cambioScope = storageScope !== nuevoScope;
+        if (cambioScope) cargarMemoria(nuevoScope);
+        if (!s) cuentaPro = false;
+        pintarCuenta();
+        if (cambioScope) pintarTodo();
+      });
+    } catch(e){}
+  }
   pintarCuenta();
   if (token){
     try {

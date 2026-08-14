@@ -48,8 +48,8 @@ Así nunca hay sorpresas. Cada plan que genera la app cuesta centavos.
 ## Sobre los pagos
 
 - Stripe usa la cuenta **Veriq Security Inc.** (usted la autorizó).
-- Producto: **GymGenio Pro — $19 USD/mes** (suscripción recurrente).
-- Link de pago: https://buy.stripe.com/8x200l8ex84ogsc72e4Vy05
+- Producto: **GymGenio Pro — $14.99 USD/mes** (suscripción recurrente).
+- Link de pago: https://buy.stripe.com/aFa5kFcuNesMb7S5Ya4Vy06
 - Al pagar, el cliente vuelve al sitio con su plan completo.
 
 ## Paso 3 · Segunda llave: la clave secreta de Stripe (para el "guardia")
@@ -67,12 +67,22 @@ antes de dar el plan Pro. Para eso necesita la **clave secreta de Stripe**.
 Hasta que esta llave esté puesta, **el plan Pro dará solo la versión gratis** aunque el cliente pague
 (mejor eso a que alguien entre sin pagar). En cuanto la agregue, el Pro pagado funciona.
 
-## Nota honesta sobre seguridad (lo que aún falta)
+## Nota honesta sobre seguridad
 
 El guardia verifica el pago con el "boleto" (session_id) que Stripe pone en la dirección.
-Es un candado real y ya cierra el hueco de `?pro=1`. Lo único: ese boleto podría compartirse
-entre amigos. Para acceso 1-por-persona hace falta el último paso: **cuentas de usuario + login**,
-que Juan y Claude construirán después. Suficiente y seguro para lanzar y conseguir los primeros clientes.
+El correo del pago debe coincidir con el de una cuenta que ya inició sesión; así no puede usar
+el boleto de otra persona para activar Pro. El servidor ya rechaza boletos usados sin iniciar sesión,
+por lo que el pago debe hacerse después de crear o entrar a una cuenta.
+Suficiente para lanzar y conseguir los primeros clientes, pero no sustituye una revisión de seguridad profesional.
+
+## 🔐 Checklist de seguridad antes de publicar
+
+- Activa **2FA** en Vercel, Supabase, Stripe, Anthropic y el correo de soporte.
+- Las llaves secretas solo van en **Vercel → Environment Variables**. Nunca las pongas en HTML, Git, capturas ni chats.
+- Si una llave se comparte por accidente, **revócala y crea otra inmediatamente**. No basta con borrarla del archivo.
+- Mantén activada la confirmación de correo de Supabase y configura CAPTCHA/rate limits desde el panel si empiezan a llegar usuarios reales.
+- El código ya añade headers de seguridad, bloquea orígenes cruzados, limita solicitudes y evita guardar el `session_id` de Stripe en la caché. El límite en memoria ayuda contra ráfagas, pero para un ataque grande hace falta WAF/rate limiting administrado en Vercel o un proveedor externo.
+- Revisa periódicamente los logs de Vercel, Stripe y Anthropic para detectar gastos o accesos anormales.
 
 ## ⚠️ Avisos legales incluidos
 

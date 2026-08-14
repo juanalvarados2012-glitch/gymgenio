@@ -1,7 +1,7 @@
 # 🧞 GymGenio — Resumen del proyecto
 
 Hecho por **Juan (14 años)** con apoyo de sus papás. Mini app de IA: un entrenador personal
-que arma tu rutina de gym + comidas. Suscripción **$19/mes**.
+que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
 
 ---
 
@@ -12,7 +12,7 @@ que arma tu rutina de gym + comidas. Suscripción **$19/mes**.
 | https://gymgenio.vercel.app | Página principal (vende GymGenio) |
 | https://gymgenio.vercel.app/app.html | La app: el genio arma tu plan |
 | https://gymgenio.vercel.app/login.html | Crear cuenta / iniciar sesión |
-| https://buy.stripe.com/8x200l8ex84ogsc72e4Vy05 | Link de pago ($19/mes) |
+| https://buy.stripe.com/aFa5kFcuNesMb7S5Ya4Vy06 | Link de pago ($14.99/mes) |
 
 ---
 
@@ -20,7 +20,7 @@ que arma tu rutina de gym + comidas. Suscripción **$19/mes**.
 
 - **Página que vende** (precios, cómo funciona, preguntas, aviso de salud) ✅
 - **El genio (IA)** arma planes reales — gratis (1 día) y Pro (semana + comidas) ✅
-- **Pago de $19/mes** con Stripe ✅
+- **Pago de $14.99/mes** con Stripe ✅
 - **Guardia anti-tramposos** (nadie entra al Pro sin pagar) ✅
 - **Cuentas** (registro + login con Supabase) ✅
 - **Cuentas conectadas al pago** ✅ → entrar con tu cuenta = ver tu Pro
@@ -43,25 +43,26 @@ que arma tu rutina de gym + comidas. Suscripción **$19/mes**.
 - Plan de los **$50 en anuncios** apuntando a gente fitness
 
 ### Detalles / pulido
-- Poner **acentos** en el sitio (hoy en ASCII)
-- Que el genio permita **pedir cambios** al plan
+- Acentos y traducciones principales en inglés/español ✅
+- Pedir cambios al plan desde la app ✅
+- Separar los planes guardados por cuenta en el mismo dispositivo ✅
 - (Opcional) Apagar "Confirm email" en Supabase (cuentas entran sin esperar correo)
 - Sincronizar los archivos locales con lo desplegado
 
 ### Prueba opcional
-- Ver el "pagué → soy Pro" real: papá se suscribe $19, lo comprueba, y se reembolsa.
+- Ver el "pagué → soy Pro" real: papá se suscribe $14.99, lo comprueba, y se reembolsa.
 
 ---
 
 ## 🔑 Llaves en Vercel (ya puestas, no tocar)
-`ANTHROPIC_API_KEY` · `STRIPE_SECRET_KEY` · `SUPABASE_URL` · `SUPABASE_ANON_KEY` · `SUPABASE_SERVICE_ROLE_KEY`
+`ANTHROPIC_API_KEY` · `STRIPE_SECRET_KEY` · `SUPABASE_URL` · `SUPABASE_ANON_KEY`
 
 ## 🎨 Archivos del logo
 - `logo-gymgenio.svg` — logo con nombre (para posts, portadas)
 - `logo-gymgenio-icono.svg` — solo el ícono redondo (para foto de perfil)
 
 ## 🎯 La meta
-Cobrar $19/mes. Con **20 clientes = $100/mes**, con **100 = $500/mes**. Empezar chico y escalar.
+Cobrar $14.99/mes. Con **20 clientes = $100/mes**, con **100 = $500/mes**. Empezar chico y escalar.
 
 ## 📌 Para retomar
 Dile a Claude: **"seguimos con GymGenio"** → y elige: Instagram, pulir, o probar el pago real.

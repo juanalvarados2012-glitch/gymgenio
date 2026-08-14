@@ -4,6 +4,9 @@
 # Dependencias (no las usamos, pero por si acaso)
 node_modules
 
+# Estado local de Freebuff; puede contener datos de la sesión
+.freebuff/
+
 # Basura del sistema
 .DS_Store
 Thumbs.db

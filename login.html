@@ -205,6 +205,18 @@
   const btnPro = document.getElementById('btnPro');
   let modo = 'login', esPro = false, correoActual = '';
 
+  function limpiarTokensUrl(){
+    if (!window.history || !window.history.replaceState) return;
+    try {
+      const url = new URL(location.href);
+      const tieneToken = /(?:^|[&#?])(access_token|refresh_token|code)=/i.test(url.hash + url.search);
+      if (!tieneToken) return;
+      url.hash = '';
+      ['access_token','refresh_token','expires_at','expires_in','token_type','type','code'].forEach(k => url.searchParams.delete(k));
+      window.history.replaceState(null, document.title, url.pathname + (url.search ? url.search : '') + url.hash);
+    } catch(e){}
+  }
+
   function verMsg(txt, tipo){ msg.textContent = txt; msg.className = 'msg show ' + tipo; }
   function limpiarMsg(){ msg.className = 'msg'; }
 
@@ -268,6 +280,7 @@
 
   async function mostrarSesion(){
     const { data:{ session } } = await sb.auth.getSession();
+    limpiarTokensUrl();
     if (session && session.user){
       emailLog.textContent = session.user.email;
       vistaAuth.classList.add('hidden');

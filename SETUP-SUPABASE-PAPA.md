@@ -1,7 +1,7 @@
 # 🧠 Crear Supabase para GymGenio — Guía paso a paso (para papá)
 
 Supabase será la "memoria" de GymGenio: guarda las cuentas de los usuarios y quién es Pro.
-Es **gratis** para empezar. Esto toma unos 10 minutos. Solo hay que crear el proyecto y copiar 3 llaves.
+Es **gratis** para empezar. Esto toma unos 10 minutos. Solo hay que crear el proyecto y copiar 2 datos públicos.
 
 ---
 
@@ -26,33 +26,30 @@ Es **gratis** para empezar. Esto toma unos 10 minutos. Solo hay que crear el pro
 3. Clic en **Create new project**.
 4. Espere 1–2 minutos mientras se prepara (verá "Setting up project...").
 
-## Paso 4 · Copiar las 3 llaves
+## Paso 4 · Copiar los 2 datos públicos
 
 Cuando el proyecto esté listo:
 
 1. En el menú de la izquierda, abajo, clic en **Settings** (el engranaje ⚙️).
 2. Clic en **API**.
-3. Ahí verá y copiará **3 cosas**:
+3. Ahí verá y copiará **2 cosas**:
 
    | Qué copiar | Dónde está | ¿Secreta? |
    |---|---|---|
    | **Project URL** | Sección "Project URL" (ej. `https://xxxx.supabase.co`) | No (pública) |
    | **anon public** | Sección "Project API keys" → fila `anon` `public` | No (pública) |
-   | **service_role** | Misma sección → fila `service_role` (clic en el ojo 👁️ para verla) | **SÍ, MUY secreta** |
 
-> ⚠️ La **service_role** es como la llave maestra. **No la pegue en chats ni la comparta.**
-> Va directo en Vercel (le explico en el Paso 5). La `anon` y el `URL` sí son públicas y no pasa nada.
+> Esta app no necesita la llave `service_role`: no la copies ni la guardes en Vercel. Es una llave maestra y mantenerla fuera reduce mucho el riesgo. La `anon` y el `URL` sí son públicas.
 
 ## Paso 5 · Guardar las llaves en Vercel
 
 1. Entre a **vercel.com** → proyecto **gymgenio** → **Settings** → **Environment Variables**.
-2. Agregue estas 3 (una por una), marcando todos los entornos (Production/Preview/Development):
+2. Agregue estas 2 (una por una), marcando todos los entornos (Production/Preview/Development):
 
    | Key (nombre exacto) | Value |
    |---|---|
    | `SUPABASE_URL` | el Project URL |
    | `SUPABASE_ANON_KEY` | la llave `anon public` |
-   | `SUPABASE_SERVICE_ROLE_KEY` | la llave `service_role` (secreta) |
 
 3. **Save**.
 

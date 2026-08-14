@@ -8,7 +8,7 @@
 <link rel="icon" href="/favicon-emblem.png" type="image/png">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#0A0A0B">
+<meta name="theme-color" content="#070809">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -150,6 +150,59 @@
   .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:center}
   .foot a{color:var(--acid);font-weight:600}
   .hidden{display:none}
+
+  /* ---------- PREMIUM VISUAL PASS ---------- */
+  :root{
+    --ink:#070809; --panel:#101214; --panel-2:#171a1d; --line:rgba(255,255,255,.11);
+    --text:#f7f8f4; --muted:#92979a; --acid:#d5ff1a; --acid-deep:#9dcc00;
+    --glow:rgba(213,255,26,.18); --violet:#8f7cff;
+  }
+  html{scroll-padding-top:82px}
+  body{background:var(--ink)}
+  nav{background:rgba(7,8,9,.72);border-bottom-color:rgba(255,255,255,.09);box-shadow:0 12px 38px rgba(0,0,0,.18)}
+  nav .wrap{height:76px}
+  .mark{letter-spacing:.04em}.mark img{height:30px}
+  .navr{gap:16px}.lang{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.025)}
+  .btn{border-radius:7px;box-shadow:0 8px 22px rgba(0,0,0,.12);transition:transform .18s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .btn-acid{box-shadow:0 12px 30px -12px var(--acid-deep)}
+  .btn-acid:hover{transform:translateY(-3px);background:#e2ff54;box-shadow:0 16px 36px -12px var(--acid-deep)}
+  .btn-line{background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.15)}
+  .btn-line:hover{background:rgba(213,255,26,.05);box-shadow:none}
+  :focus-visible{outline:2px solid var(--acid);outline-offset:4px}
+
+  .hero{padding:108px 0 44px;overflow:hidden;background:
+    radial-gradient(ellipse 55% 70% at 82% 30%,rgba(143,124,255,.15),transparent 68%),
+    radial-gradient(ellipse 45% 65% at 18% 10%,rgba(213,255,26,.08),transparent 70%)}
+  .hero::before{content:"";position:absolute;inset:0;opacity:.28;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:72px 72px;-webkit-mask-image:linear-gradient(to bottom,black,transparent 78%);mask-image:linear-gradient(to bottom,black,transparent 78%)}
+  .hero-grid{position:relative;z-index:1;gap:72px}
+  .hero-kicker{display:inline-flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid rgba(213,255,26,.22);border-radius:999px;background:rgba(213,255,26,.055);color:#d8e6a0;font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--acid);box-shadow:0 0 0 5px rgba(213,255,26,.12),0 0 18px var(--acid);flex:none}
+  .hero h1{margin-top:22px;letter-spacing:-.035em;text-shadow:0 8px 40px rgba(0,0,0,.22)}
+  .hero .strike::after{height:7px;box-shadow:0 0 20px rgba(213,255,26,.35)}
+  .lead{font-size:1.1rem;line-height:1.7}
+  .cta-row{gap:14px}.under{margin-top:22px}.hero-proof{display:flex;flex-wrap:wrap;gap:16px;margin-top:28px;color:#a8adaf;font-size:.76rem;font-weight:600}.hero-proof span{display:inline-flex;align-items:center;gap:7px}.hero-proof b{display:grid;place-items:center;width:17px;height:17px;border:1px solid rgba(213,255,26,.4);border-radius:50%;color:var(--acid);font-size:.65rem}
+
+  .card{border-radius:18px;border-color:rgba(255,255,255,.15);background:linear-gradient(145deg,rgba(25,29,32,.98),rgba(12,14,16,.98));box-shadow:0 40px 100px -45px #000,0 0 80px -42px var(--violet);transform:rotate(-1.1deg) perspective(1000px) rotateY(-2deg)}
+  .card::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,rgba(255,255,255,.09),transparent 30%,transparent 70%,rgba(143,124,255,.08));border-radius:inherit}
+  .card>*{position:relative;z-index:1}.card-top{padding:18px 22px;background:rgba(255,255,255,.035);border-bottom-color:rgba(255,255,255,.1)}
+  .card-live{display:inline-flex;align-items:center;gap:7px;color:#bcc1c2;font-size:.62rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.card-live i{width:6px;height:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 12px var(--acid)}
+  .card-body{padding:25px 22px}.card-week{font-size:.65rem;color:var(--muted);font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px}.card-body h3{font-size:1.85rem}.card-body .sub{margin:6px 0 18px}
+  .card-meta{display:flex;align-items:center;gap:18px;padding:12px 0 16px;margin-bottom:2px;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}.card-meta>span{display:flex;flex-direction:column;gap:1px}.card-meta b{font-family:var(--display);font-size:1.15rem;line-height:1;color:var(--acid)}.card-meta small{font-size:.61rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}.card-meta .card-status{flex-direction:row;align-items:center;gap:7px;margin-left:auto}.card-status i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.6)}
+  .ex{padding:12px 0;border-bottom-color:rgba(255,255,255,.075);transition:padding .18s ease,color .18s ease}.ex:hover{padding-left:5px}.ex .st{color:var(--acid)}
+  .card-foot{padding:15px 22px;background:rgba(255,255,255,.035);border-top-color:rgba(255,255,255,.1)}
+
+  .ticker{margin-top:74px;background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.1)}.ticker-in{padding:17px 0;color:#9ea3a5;letter-spacing:.09em}.ticker-in i{color:var(--acid)}
+  section{padding:112px 0}.head{margin-bottom:58px}.head h2{letter-spacing:-.025em}.head p{line-height:1.75}
+  .grid3{border-radius:18px;box-shadow:0 28px 80px -58px #000}.grid3 .cell{background:linear-gradient(145deg,rgba(20,23,25,.98),rgba(10,12,13,.98)) !important;padding:38px 30px;transition:transform .2s ease,background .2s ease}.grid3 .cell:hover{background:linear-gradient(145deg,rgba(28,32,34,.98),rgba(12,15,16,.98)) !important;transform:translateY(-4px);z-index:1}.cell .num{font-size:2.8rem;color:var(--acid);text-shadow:0 0 22px rgba(213,255,26,.16)}.cell h3{letter-spacing:.01em}.cell p{line-height:1.7}
+  #how{background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)) !important;border-color:rgba(255,255,255,.1) !important}
+
+  .prices{gap:24px}.price{border-radius:18px;border-color:rgba(255,255,255,.13);padding:38px 32px;box-shadow:0 28px 70px -52px #000;transition:transform .2s ease,box-shadow .2s ease}.price:hover{transform:translateY(-5px);box-shadow:0 34px 80px -50px #000}.price.hot{background:linear-gradient(145deg,#dcff35 0%,#b6e500 52%,#94be00 100%);border-color:#d5ff1a;box-shadow:0 28px 80px -45px rgba(213,255,26,.55)}.price.hot:hover{box-shadow:0 38px 90px -42px rgba(213,255,26,.65)}.hot-tag{top:-13px;right:26px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25)}.price .feat{gap:14px}.price .btn{border-radius:7px}.price-trust{display:flex;justify-content:center;align-items:center;gap:9px;margin-top:22px;color:var(--muted);font-size:.76rem}.price-trust b{color:var(--acid);font-size:.9rem}.price.hot .price-trust{color:#334100}.price.hot .price-trust b{color:#0a0a0b}
+  details{border-bottom-color:rgba(255,255,255,.1)}details summary{padding:25px 0;transition:color .18s ease}details summary:hover{color:var(--acid)}details p{line-height:1.75}
+  .final{border-radius:18px;border-color:rgba(255,255,255,.13);background:linear-gradient(145deg,rgba(22,25,27,.98),rgba(11,13,14,.98));padding:86px 30px;box-shadow:0 30px 90px -58px #000}.final::before{height:330px;background:radial-gradient(50% 100% at 50% 100%,rgba(213,255,26,.2),transparent 70%)}.final h2{letter-spacing:-.025em}.final .btn{box-shadow:0 14px 34px -12px var(--acid-deep)}
+  footer{border-top-color:rgba(255,255,255,.1);padding-top:52px}.disc{border-radius:14px;border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.025)}
+  @media(max-width:820px){.who{display:none}.navr .btn{display:inline-flex;padding:.68em 1em;font-size:.76rem}.navr{gap:8px}.hero{padding-top:82px}.hero-grid{gap:48px}}
+  @media(max-width:560px){nav .wrap{height:68px}.mark{font-size:1.28rem}.mark img{height:27px}.navr .btn{padding:.62em .75em;font-size:.7rem}.hero{padding-top:68px}.hero h1{font-size:clamp(3rem,15vw,4.5rem)}.hero-proof{gap:10px 14px}.hero-proof span{font-size:.7rem}.card{transform:none}.card-body{padding:22px 18px}.card-top,.card-foot{padding-left:18px;padding-right:18px}.card-meta{gap:13px}.card-meta .card-status{margin-left:0}.card-meta small{font-size:.55rem}.ticker{margin-top:54px}section{padding:82px 0}.head{margin-bottom:38px}.grid3 .cell{padding:30px 24px}.price{padding:32px 24px}.final{padding:64px 22px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.ticker-in{animation:none}.btn,.card,.grid3 .cell,.price,.ex{transition:none}}
 </style>
 </head>
 <body>
@@ -166,6 +219,7 @@
 
 <header class="hero"><div class="wrap hero-grid">
   <div>
+    <div class="hero-kicker"><span class="pulse" aria-hidden="true"></span><span data-i18n="hero.kicker">Personalized coaching, without the noise</span></div>
     <span class="lbl" data-i18n="hero.eyebrow">AI coach · Home training</span>
     <h1><span data-i18n="hero.l1">Stop</span> <span class="strike" data-i18n="hero.l2">guessing.</span> <span data-i18n="hero.l3">Start training.</span></h1>
     <p class="lead" data-i18n-html="hero.lead">Tell the genie your goal and get a <b>real workout plan</b> built around your body, your time and whatever equipment you have. Even if that's nothing.</p>
@@ -174,16 +228,19 @@
       <a href="#how" class="btn btn-line" data-i18n="hero.cta2">How it works</a>
     </div>
     <div class="under"><b data-i18n="hero.under1">First plan free.</b> <span data-i18n="hero.under2">No card. Cancel anytime.</span></div>
+    <div class="hero-proof"><span><b>✓</b><span data-i18n="hero.proof1">No card required</span></span><span><b>✓</b><span data-i18n="hero.proof2">Built for beginners</span></span><span><b>✓</b><span data-i18n="hero.proof3">Private by design</span></span></div>
   </div>
 
   <div class="card">
     <div class="card-top">
-      <span class="lbl" data-i18n="card.week">Week 01 · Day 02</span>
+      <span class="card-live"><i aria-hidden="true"></i><span data-i18n="card.live">Personalized plan</span></span>
       <span class="tag">PRO</span>
     </div>
     <div class="card-body">
+      <p class="card-week" data-i18n="card.week">Week 01 · Day 02</p>
       <h3 data-i18n="card.title">Lower body + core</h3>
       <p class="sub" data-i18n="card.sub">22 min · No equipment · Beginner</p>
+      <div class="card-meta"><span><b>06</b><small data-i18n="card.stat1">Exercises</small></span><span><b>22</b><small data-i18n="card.stat2">Minutes</small></span><span class="card-status"><i aria-hidden="true"></i><small data-i18n="card.ready">Ready to go</small></span></div>
       <div class="ex"><span class="n">01</span><span class="nm" data-i18n="card.e1">Warm-up: march in place</span><span class="st">2:00</span></div>
       <div class="ex"><span class="n">02</span><span class="nm" data-i18n="card.e2">Bodyweight squats</span><span class="st">3 × 12</span></div>
       <div class="ex"><span class="n">03</span><span class="nm" data-i18n="card.e3">Glute bridge</span><span class="st">3 × 15</span></div>
@@ -254,6 +311,7 @@
           <li data-i18n="price.p5">Cancel anytime, one click</li>
         </ul>
         <a href="/login.html" class="btn" id="btnPro" data-i18n="price.proCta">Go Pro · $14.99/mo</a>
+        <div class="price-trust"><b>✓</b><span data-i18n="price.note">Secure checkout via Stripe · Cancel anytime</span></div>
       </div>
     </div>
   </div></section>
@@ -289,12 +347,14 @@
   const T = {
     es:{
       'nav.login':'Entrar','nav.cta':'Empieza gratis',
+      'hero.kicker':'Coaching personalizado, sin ruido','hero.proof1':'Sin tarjeta','hero.proof2':'Hecho para principiantes','hero.proof3':'Privacidad primero',
       'hero.eyebrow':'Coach con IA · Entrena en casa',
       'hero.l1':'Deja de','hero.l2':'adivinar.','hero.l3':'Empieza a entrenar.',
       'hero.lead':'Cuéntale tu meta al genio y recibe un <b>plan de verdad</b> hecho para tu cuerpo, tu tiempo y el equipo que tengas. Aunque no tengas nada.',
       'hero.cta1':'Armar mi plan — gratis','hero.cta2':'Cómo funciona',
       'hero.under1':'Tu primer plan es gratis.','hero.under2':'Sin tarjeta. Cancelas cuando quieras.',
-      'card.week':'Semana 01 · Día 02','card.title':'Piernas + abdomen','card.sub':'22 min · Sin equipo · Principiante',
+      'card.live':'Plan personalizado','card.week':'Semana 01 · Día 02','card.title':'Piernas + abdomen','card.sub':'22 min · Sin equipo · Principiante',
+      'card.stat1':'ejercicios','card.stat2':'minutos','card.ready':'Listo para empezar',
       'card.e1':'Calentamiento: marcha en el sitio','card.e2':'Sentadillas','card.e3':'Puente de glúteos',
       'card.e4':'Zancadas hacia atrás','card.e5':'Plancha de antebrazos','card.e6':'Estiramiento final',
       'card.meals':'+ Plan de comidas incluido','card.change':'Pide cambios →',
@@ -312,7 +372,7 @@
       'price.freeCta':'Probar gratis','price.tag':'Más popular','price.proLbl':'GymGenio Pro','price.mo':'/mes',
       'price.p1':'<b>Semana completa</b> de rutinas, cada semana','price.p2':'<b>Plan de comidas</b> personalizado',
       'price.p3':'Cambios y ajustes ilimitados','price.p4':'Planes según tu peso, edad y nivel','price.p5':'Cancelas cuando quieras, con un clic',
-      'price.proCta':'Hazte Pro · $14.99/mes',
+      'price.proCta':'Hazte Pro · $14.99/mes','price.note':'Pago seguro con Stripe · Cancela cuando quieras',
       'faq.eyebrow':'Dudas','faq.h':'Bueno saberlo',
       'faq.q1':'¿Necesito equipo de gimnasio?','faq.a1':'No. GymGenio arma tu plan con lo que tengas: solo tu cuerpo, unas mancuernas, bandas elásticas o un gym completo. Tú decides.',
       'faq.q2':'¿Sirve si nunca he entrenado?','faq.a2':'Está hecho justo para ti. Empieza suave y sube a tu ritmo, con notas de técnica en cada ejercicio.',

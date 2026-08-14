@@ -5,10 +5,10 @@
 // Así nunca le muestra a nadie una versión vieja de tu app.
 
 // Al subir cambios de imágenes o diseño, sube este número: limpia lo guardado.
-const CACHE = 'gymgenio-v2';
+const CACHE = 'gymgenio-v4';
 
 // Lo mínimo para que la app abra aunque no haya señal.
-const BASICOS = [
+const BASICS = [
   '/',
   '/index.html',
   '/app.html',
@@ -22,7 +22,7 @@ const BASICOS = [
 self.addEventListener('install', evento => {
   evento.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(BASICOS))
+      .then(c => c.addAll(BASICS))
       .catch(() => {})          // si algo falla, no rompemos la instalación
       .then(() => self.skipWaiting())
   );
@@ -47,8 +47,8 @@ self.addEventListener('fetch', evento => {
   // Nada de otros sitios: Google, Supabase y Stripe se manejan solos.
   if (url.origin !== self.location.origin) return;
 
-  // NUNCA guardar las respuestas del cerebro (planes, cuenta, pagos).
-  if (url.pathname.startsWith('/api/')) return;
+  // NUNCA guardar respuestas privadas ni URLs con el boleto de Stripe.
+  if (url.pathname.startsWith('/api/') || url.searchParams.has('session_id')) return;
 
   evento.respondWith(
     fetch(pedido)
