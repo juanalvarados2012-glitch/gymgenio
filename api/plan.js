@@ -169,6 +169,69 @@ function pasaLimite(ip) {
 // 🗺️ Ritmo SEGURO de cambio de peso. El genio nunca promete milagros:
 // bajar como mucho ~1% del peso por semana (tope 0.9 kg) y subir como mucho 0.4 kg.
 // Devuelve las semanas MÍNIMAS que hacen falta para esa meta sin arriesgar la salud.
+// 🔌 INTERRUPTOR DE SEGURIDAD: si NVIDIA falla, la dejamos descansando 10 min.
+// Así nadie más espera de balde a una IA que ya sabemos que no contesta; cuando
+// pasa el rato la volvemos a probar sola (si revive, volvemos a lo gratis).
+let nvidiaCaidaHasta = 0;
+const CASTIGO_NVIDIA_MS = 10 * 60 * 1000;
+
+// Le pide el plan a Claude. Si algo sale mal, lanza el error (no lo esconde).
+async function pedirAAnthropic(apiKey, modelo, prompt, maxTokens, milisegundos) {
+  const respuesta = await fetchConTiempo('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: modelo,
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }, milisegundos);
+
+  if (!respuesta.ok) {
+    const detalle = await respuesta.text();
+    throw new Error('Anthropic ' + respuesta.status + ': ' + detalle.slice(0, 300));
+  }
+
+  const datos = await respuesta.json();
+  // Buscamos el texto en TODAS las cajitas de tipo "text" (no solo la primera).
+  return (datos.content || [])
+    .filter(function (b) { return b && b.type === 'text' && b.text; })
+    .map(function (b) { return b.text; })
+    .join('\n');
+}
+
+// Le pide el plan a NVIDIA (habla el mismo formato que OpenAI).
+async function pedirANvidia(key, prompt, milisegundos) {
+  const respuesta = await fetchConTiempo('https://integrate.api.nvidia.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      Authorization: 'Bearer ' + key
+    },
+    body: JSON.stringify({
+      model: 'meta/llama-3.3-70b-instruct',
+      max_tokens: 4000,
+      temperature: 0.6,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }, milisegundos);
+
+  if (!respuesta.ok) {
+    const detalle = await respuesta.text();
+    throw new Error('NVIDIA ' + respuesta.status + ': ' + detalle.slice(0, 300));
+  }
+
+  const datos = await respuesta.json();
+  const texto = (datos.choices && datos.choices[0] && datos.choices[0].message
+    && datos.choices[0].message.content) || '';
+  if (!texto.trim()) throw new Error('NVIDIA devolvió una respuesta vacía.');
+  return texto;
+}
+
 function ritmoMaximo(pesoInicial, pesoMeta) {
   return pesoMeta < pesoInicial ? Math.min(0.9, pesoInicial * 0.01) : 0.4;
 }
@@ -484,12 +547,13 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
 }`;
   }
 
-  // 💰 Gratis usa NVIDIA (Llama 3.3 70B, barato/gratis) para poder dar 5 días
-  // sin quemar presupuesto. Pro sigue con Claude (mejor calidad + comidas).
-  // Si falta una llave lo decimos al registro del servidor, no al navegador.
+  // 💰 Gratis intenta NVIDIA (Llama 3.3, sin costo). Si NVIDIA no contesta,
+  // entra Claude Haiku de respaldo: cuesta como 1 centavo por plan, pero el
+  // plan gratis NUNCA se queda roto — y de ahí salen los clientes de Pro.
+  // Pro sigue con Claude Sonnet (mejor calidad + comidas).
   const NVIDIA_KEY = process.env.NVIDIA_API_KEY;
-  if (!esPro && !NVIDIA_KEY) {
-    console.error('NVIDIA_API_KEY no está configurada.');
+  if (!esPro && !NVIDIA_KEY && !API_KEY) {
+    console.error('No hay ninguna llave de IA configurada.');
     return res.status(503).json({
       error: es ? 'El genio no está disponible en este momento.' : 'The genie is unavailable right now.'
     });
@@ -501,74 +565,37 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
     });
   }
 
+  let motorUsado = esPro ? 'Anthropic' : 'gratis';
+
   try {
-    let texto;
+    let texto = '';
 
     if (esPro) {
-      const respuesta = await fetchConTiempo('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-5',
-          max_tokens: 8000,
-          messages: [{ role: 'user', content: prompt }]
-        })
       // Un plan Pro completo (6 días + comidas + la ruta) puede tardar bastante:
       // le damos casi todo el minuto que permite Vercel antes de cortar.
-      }, 52000);
-
-      if (!respuesta.ok) {
-        const detalle = await respuesta.text();
-        console.error('Error de Anthropic:', detalle);
-        return res.status(502).json({
-          error: es ? 'El genio está descansando. Intenta de nuevo en un momento.'
-                    : 'The genie is taking a breather. Try again in a moment.'
-        });
-      }
-
-      const datos = await respuesta.json();
-
-      // Buscamos el texto en TODAS las cajitas de tipo "text" (no solo la primera).
-      texto = (datos.content || [])
-        .filter(function (b) { return b && b.type === 'text' && b.text; })
-        .map(function (b) { return b.text; })
-        .join('\n');
+      texto = await pedirAAnthropic(API_KEY, 'claude-sonnet-5', prompt, 8000, 52000);
     } else {
-      // NVIDIA NIM habla el mismo formato que OpenAI (chat/completions).
-      const respuesta = await fetchConTiempo('https://integrate.api.nvidia.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          Authorization: 'Bearer ' + NVIDIA_KEY
-        },
-        body: JSON.stringify({
-          model: 'meta/llama-3.3-70b-instruct',
-          max_tokens: 4000,
-          temperature: 0.6,
-          messages: [{ role: 'user', content: prompt }]
-        })
-      // NVIDIA a veces encola y no contesta: cortamos antes para avisar rápido
-      // en vez de dejar a la persona mirando la pantalla un minuto entero.
-      }, 25000);
-
-      if (!respuesta.ok) {
-        const detalle = await respuesta.text();
-        console.error('Error de NVIDIA:', detalle);
-        return res.status(502).json({
-          error: es ? 'El genio está descansando. Intenta de nuevo en un momento.'
-                    : 'The genie is taking a breather. Try again in a moment.'
-        });
+      // 1) NVIDIA primero (gratis), salvo que acabe de fallar y esté "castigada".
+      if (NVIDIA_KEY && Date.now() >= nvidiaCaidaHasta) {
+        try {
+          texto = await pedirANvidia(NVIDIA_KEY, prompt, 15000);
+          motorUsado = 'NVIDIA';
+        } catch (fallo) {
+          // La apuntamos como caída un rato: los siguientes usuarios no esperan
+          // 15 segundos de balde, van derechito al respaldo.
+          nvidiaCaidaHasta = Date.now() + CASTIGO_NVIDIA_MS;
+          console.error('NVIDIA falló, entra el respaldo:', fallo && fallo.message);
+        }
       }
-
-      const datos = await respuesta.json();
-      texto = (datos.choices && datos.choices[0] && datos.choices[0].message && datos.choices[0].message.content) || '';
+      // 2) Respaldo: Claude Haiku (barato y rápido).
+      if (!texto) {
+        if (!API_KEY) throw new Error('NVIDIA caída y sin ANTHROPIC_API_KEY de respaldo.');
+        texto = await pedirAAnthropic(API_KEY, 'claude-haiku-4-5', prompt, 4000, 30000);
+        motorUsado = 'Haiku (respaldo)';
+      }
     }
 
-    texto = texto.replace(/```(?:json)?/gi, '').trim();
+    texto = String(texto || '').replace(/```(?:json)?/gi, '').trim();
 
     const ini = texto.indexOf('{');
     const fin = texto.lastIndexOf('}');
@@ -609,14 +636,14 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
     // Que el mensaje DIGA qué pasó. "Algo salió mal" no le sirve a nadie:
     // ni a la persona que espera su plan ni a quien tiene que arreglarlo.
     if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) {
-      console.error('TIEMPO AGOTADO esperando a la IA (' + (esPro ? 'Anthropic' : 'NVIDIA') + ').');
+      console.error('TIEMPO AGOTADO esperando a la IA (' + motorUsado + ').');
       return res.status(504).json({
         error: es
           ? 'El genio se tardó demasiado escribiendo tu plan. Vuelve a intentarlo; si sigue pasando, pide menos días para que le cueste menos.'
           : 'The genie took too long writing your plan. Try again; if it keeps happening, ask for fewer days so it has less to write.'
       });
     }
-    console.error('Error inesperado (' + (esPro ? 'Anthropic' : 'NVIDIA') + '):', error);
+    console.error('Error inesperado (' + motorUsado + '):', error);
     return res.status(500).json({
       error: es ? 'Algo salió mal. Intenta de nuevo en un momento.'
                 : 'Something went wrong. Try again in a moment.'
