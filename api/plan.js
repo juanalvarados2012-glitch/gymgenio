@@ -367,7 +367,7 @@ export default async function handler(req, res) {
     const rutaPedida = semanasRuta
       ? `\nAdemás, arma "ruta": ${semanasRuta} objeto(s), uno por semana (semana 1 hasta ${semanasRuta}). Cada semana lleva:
 - "foco": el enfoque de esa semana en 3-6 palabras (ej: "Aprender la técnica sin peso").
-- "meta": UNA acción concreta y medible para esa semana, en 1 frase (ej: "Completa los 3 entrenos y camina 20 min los días libres").
+- "meta": UNA acción concreta y medible para esa semana, en 1 frase CORTA de máximo 12 palabras (ej: "Completa los 3 entrenos y camina 20 min los días libres").
 La ruta debe subir poco a poco: las primeras semanas son de técnica y constancia, las últimas de más exigencia. Nunca prometas resultados garantizados.${semanasRuta < (semanas || 0) ? `\nEn "nota" cuenta que la ruta completa de las ${semanas} semanas está en GymGenio Pro.` : ''}\n`
       : '\nDeja "ruta" como una lista vacía [].\n';
     const cambio = ajuste
@@ -428,7 +428,7 @@ Responde ÚNICAMENTE con un JSON válido (sin texto antes ni después, sin bloqu
     const rutaPedida = semanasRuta
       ? `\nAlso build "ruta": ${semanasRuta} object(s), one per week (week 1 through ${semanasRuta}). Each week has:
 - "foco": that week's focus in 3-6 words (e.g. "Learn the form with no weight").
-- "meta": ONE concrete, measurable action for that week, in 1 sentence (e.g. "Finish all 3 workouts and walk 20 min on rest days").
+- "meta": ONE concrete, measurable action for that week, in 1 SHORT sentence of at most 12 words (e.g. "Finish all 3 workouts and walk 20 min on rest days").
 The route must ramp up gently: the first weeks are about form and consistency, the last ones about more challenge. Never promise guaranteed results.${semanasRuta < (semanas || 0) ? `\nIn "nota", say the full ${semanas}-week route is part of GymGenio Pro.` : ''}\n`
       : '\nLeave "ruta" as an empty list [].\n';
     const cambio = ajuste
@@ -517,7 +517,9 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
           max_tokens: 8000,
           messages: [{ role: 'user', content: prompt }]
         })
-      }, 30000);
+      // Un plan Pro completo (6 días + comidas + la ruta) puede tardar bastante:
+      // le damos casi todo el minuto que permite Vercel antes de cortar.
+      }, 52000);
 
       if (!respuesta.ok) {
         const detalle = await respuesta.text();
@@ -549,7 +551,9 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
           temperature: 0.6,
           messages: [{ role: 'user', content: prompt }]
         })
-      }, 30000);
+      // NVIDIA a veces encola y no contesta: cortamos antes para avisar rápido
+      // en vez de dejar a la persona mirando la pantalla un minuto entero.
+      }, 25000);
 
       if (!respuesta.ok) {
         const detalle = await respuesta.text();
@@ -602,7 +606,17 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
       } : null
     });
   } catch (error) {
-    console.error('Error inesperado:', error);
+    // Que el mensaje DIGA qué pasó. "Algo salió mal" no le sirve a nadie:
+    // ni a la persona que espera su plan ni a quien tiene que arreglarlo.
+    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) {
+      console.error('TIEMPO AGOTADO esperando a la IA (' + (esPro ? 'Anthropic' : 'NVIDIA') + ').');
+      return res.status(504).json({
+        error: es
+          ? 'El genio se tardó demasiado escribiendo tu plan. Vuelve a intentarlo; si sigue pasando, pide menos días para que le cueste menos.'
+          : 'The genie took too long writing your plan. Try again; if it keeps happening, ask for fewer days so it has less to write.'
+      });
+    }
+    console.error('Error inesperado (' + (esPro ? 'Anthropic' : 'NVIDIA') + '):', error);
     return res.status(500).json({
       error: es ? 'Algo salió mal. Intenta de nuevo en un momento.'
                 : 'Something went wrong. Try again in a moment.'

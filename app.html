@@ -1328,7 +1328,9 @@
     }
 
     /* ---- lo que falta por desbloquear + botones ---- */
-    if (rutaIA.length && rutaIA.length < meta.semanas){
+    // Solo al plan gratis. Un Pro nunca debe ver "hazte Pro", ni aunque el genio
+    // haya escrito menos semanas de las que le pedimos.
+    if (!guardado.esPro && rutaIA.length && rutaIA.length < meta.semanas){
       const href = userEmail ? (STRIPE_PRO + '?prefilled_email=' + encodeURIComponent(userEmail)) : '/login.html';
       h += '<div class="ruta-lock">🔒 ' + t('rt.proLock').replace('{n}', meta.semanas) +
            ' <a href="' + href + '"' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + t('rt.proGo') + '</a></div>';
