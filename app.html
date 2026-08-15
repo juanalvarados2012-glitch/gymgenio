@@ -130,6 +130,57 @@
   .tips li{display:flex;gap:.8em;font-size:.93rem;color:var(--muted)}
   .tips li::before{content:"—";color:var(--acid);flex:none}
 
+  /* ---------- 🗺️ RUTA A LA META ---------- */
+  .ruta{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:26px 0}
+  .ruta-top{padding:24px 26px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .ruta-top h3{font-size:1.5rem;margin:10px 0 0}
+  .ruta-sub{color:var(--muted);font-size:.88rem;margin-top:8px}
+  .goalbar{height:10px;background:var(--ink);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:18px 0 9px}
+  .goalbar span{display:block;height:100%;background:var(--acid);border-radius:999px;transition:width .45s ease}
+  .goal-nums{display:flex;justify-content:space-between;gap:10px;font-size:.75rem;font-weight:600;color:var(--muted)}
+  .goal-nums b{color:var(--text)}
+  .pill{display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    padding:.35em .65em;border-radius:3px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .pill.ok{background:rgba(74,222,128,.14);border-color:transparent;color:var(--done)}
+  .pill.now{background:var(--acid);border-color:transparent;color:#0A0A0B}
+  .pill.warn{background:rgba(233,185,73,.14);border-color:transparent;color:#E9B949}
+  .ruta-msg{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:13px 15px;border-radius:6px;
+    background:rgba(204,255,0,.07);border:1px solid var(--acid);font-size:.88rem;line-height:1.5}
+  .ruta-msg.plano{background:var(--ink);border-color:var(--line);color:var(--muted)}
+  .ruta-msg b{color:var(--acid);font-weight:700}
+  .ruta-msg.plano b{color:var(--text)}
+
+  .wk{display:flex;gap:14px;padding:16px 26px;border-bottom:1px solid var(--line)}
+  .wk:last-of-type{border-bottom:none}
+  .wk.now{background:rgba(204,255,0,.045)}
+  .wk.futura{opacity:.55}
+  .wk-n{font-family:var(--display);font-size:1rem;color:var(--muted);min-width:82px;padding-top:2px}
+  .wk.now .wk-n{color:var(--acid)}
+  .wk.ok .wk-n{color:var(--done)}
+  .wk-body{flex:1;min-width:0}
+  .wk-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .wk-foco{font-weight:600;font-size:.95rem}
+  .wk-meta{font-size:.84rem;color:var(--muted);margin-top:4px}
+  .wk-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;font-size:.78rem;color:var(--muted);align-items:center}
+  .wk-stats b{color:var(--text);font-weight:700}
+  .dots{display:inline-flex;gap:4px;vertical-align:middle;margin-left:2px}
+  .dots i{width:9px;height:9px;border-radius:2px;background:var(--line);display:block}
+  .dots i.on{background:var(--acid)}
+  .ruta-pie{padding:18px 26px;border-top:1px solid var(--line);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .ruta-pie .btn{flex:1;min-width:180px}
+  .ruta-lock{padding:16px 26px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);text-align:center}
+  .ruta-lock a{color:var(--acid);font-weight:700}
+  .metaform{padding:22px 26px}
+  .metaform .row{margin-bottom:14px}
+  .metaform .field{margin-bottom:0}
+  .metaform .acciones{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .metaform .linkmini{background:none;border:none;color:var(--muted);font:inherit;font-size:.82rem;
+    text-decoration:underline;cursor:pointer;padding:.5em}
+  @media(max-width:480px){
+    .ruta-top{padding:20px 16px}.wk{padding:14px 16px;gap:10px}.wk-n{min-width:64px;font-size:.9rem}
+    .ruta-pie,.metaform{padding:16px}
+  }
+
   /* ---------- PESO ---------- */
   .peso{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:24px 26px;margin-bottom:20px}
   .peso h3{font-size:1.1rem;margin-bottom:4px}
@@ -262,9 +313,16 @@
   @media print{
     body{background:#fff;color:#000}
     body::after,nav,form,.dash,.peso,.ajuste,.upsell,.bar,.aviso,.contacto,.sep,.timer,
-    .plan-top .acciones,.tick,.desc,.chev,.dia-estado,#cargando,#error{display:none !important}
+    .plan-top .acciones,.tick,.desc,.chev,.dia-estado,.ruta-pie,.metaform,.ruta-lock,
+    #cargando,#error{display:none !important}
     .wrap{max-width:100%;padding:0}
-    .plan,.plan-top,.dia,.bloque{background:#fff !important;border-color:#ccc !important;color:#000}
+    .plan,.plan-top,.dia,.bloque,.ruta,.ruta-top,.wk{background:#fff !important;border-color:#ccc !important;color:#000}
+    .wk.futura{opacity:1}
+    .goalbar{background:#eee !important}.goalbar span{background:#666 !important}
+    .pill{border-color:#999 !important;background:none !important;color:#000 !important}
+    .ruta-msg{background:none !important;border-color:#ccc !important;color:#000}
+    .ruta-msg b,.wk-n,.wk-stats b{color:#000 !important}
+    .dots i{background:#ddd !important}.dots i.on{background:#666 !important}
     .dia-cuerpo{display:block !important}
     .ej-txt.tachado{opacity:1;text-decoration:none}
     .acid,.ej-der .series,.comida b,.tips li::before,.dia-num{color:#000 !important}
@@ -306,6 +364,9 @@
     <div class="stat"><div class="big" id="stTotal">0</div><div class="cap" data-i18n="st.done">Workouts done</div></div>
     <div class="stat"><div class="big" id="stSemana">0<small>/0</small></div><div class="cap" data-i18n="st.week">This plan</div></div>
   </div>
+
+  <!-- 🗺️ RUTA A LA META: semana por semana, cómo va a llegar -->
+  <div class="ruta hidden" id="cajaRuta"></div>
 
   <!-- 📸 CONTADOR DE CALORÍAS POR FOTO (solo Pro) -->
   <div class="comida-box hidden" id="cajaComida">
@@ -462,6 +523,28 @@
     </div>
     <p class="note" data-i18n="f.privacy">🔒 Only used to size your workouts and portions. Never shared with anyone.</p>
 
+    <!-- 🗺️ LA META: a dónde quiere llegar y en cuánto tiempo -->
+    <div class="row">
+      <div class="field">
+        <label for="pesoMeta"><span data-i18n="f.goalW">Weight you want to reach</span> <small data-i18n="f.opt6">(optional)</small></label>
+        <div class="funit">
+          <input id="pesoMeta" type="number" step="0.5" placeholder="72">
+          <div class="utoggle"><button type="button" id="uMetaLbl" class="on" disabled>kg</button></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="semanas" data-i18n="f.weeks">In how many weeks?</label>
+        <select id="semanas">
+          <option value="4" data-i18n="o.w4">4 weeks</option>
+          <option value="6" data-i18n="o.w6">6 weeks</option>
+          <option value="8" selected data-i18n="o.w8">8 weeks</option>
+          <option value="12" data-i18n="o.w12">12 weeks</option>
+          <option value="16" data-i18n="o.w16">16 weeks</option>
+        </select>
+      </div>
+    </div>
+    <p class="note" data-i18n="f.goalNote">🗺️ With this I build your week-by-week route and track every week whether you are on your way. No goal weight? I still build you a consistency route.</p>
+
     <div class="field">
       <label for="restricciones"><span data-i18n="f.limits">Anything I should know?</span> <small data-i18n="f.opt5">(optional)</small></label>
       <textarea id="restricciones" maxlength="200" data-i18n-ph="f.limitsPh" placeholder="e.g. bad knee, tiny apartment, no jumping"></textarea>
@@ -515,10 +598,14 @@
       'f.privacy':'🔒 Solo sirve para ajustar tus rutinas y porciones. No lo compartimos con nadie.',
       'f.limits':'¿Algo que deba saber?','f.limitsPh':'ej: me molesta la rodilla, poco espacio, sin saltos',
       'f.submit':'Armar mi plan',
+      'f.goalW':'Peso al que quieres llegar','f.opt6':'(opcional)','f.weeks':'¿En cuántas semanas?',
+      'o.w4':'4 semanas','o.w6':'6 semanas','o.w8':'8 semanas','o.w12':'12 semanas','o.w16':'16 semanas',
+      'f.goalNote':'🗺️ Con esto te armo tu ruta semana por semana y te voy diciendo si vas en camino. ¿No quieres meta de peso? Igual te armo una ruta de constancia.',
       'load.b':'El genio está trabajando','load.s':'Esto toma unos segundos.',
       'aj.label':'¿Quieres ajustar tu plan?','aj.ph':'ej: más fácil, sin saltos, más cardio','aj.btn':'Pedir cambio',
       'w.h':'Registro de peso','w.sub':'Con un número por semana ya ves la tendencia.',
       'w.ph':'Tu peso de hoy en kg','w.btn':'Guardar','w.now':'último',
+      'w.phKg':'Tu peso de hoy en kg','w.phLb':'Tu peso de hoy en lb',
       'sep.new':'Plan nuevo','tm.rest':'Descanso','tm.stop':'Parar',
       'disc.b':'⚠ Aviso de salud:','disc.t':'GymGenio ofrece rutinas y sugerencias de comida con fines informativos y de motivación. No es asesoría médica ni reemplaza a un doctor, nutricionista o entrenador certificado. Consulta a un médico antes de empezar, sobre todo si tienes alguna condición de salud, estás embarazada o eres menor de edad. Entrenas bajo tu propia responsabilidad.',
       'foot.q':'¿Problemas o dudas?',
@@ -536,6 +623,29 @@
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
       'js.planOther':'Tu plan está en inglés.','js.planSwitch':'Verlo en español →',
+      /* 🗺️ ruta a la meta */
+      'rt.lbl':'Tu ruta','rt.h':'Cómo vas a llegar a tu meta','rt.hHabit':'Tu ruta de constancia',
+      'rt.invH':'¿A dónde quieres llegar?',
+      'rt.invP':'Ponte una meta y te muestro, semana por semana, cómo vas a llegar.',
+      'rt.wToday':'Tu peso de hoy','rt.wTarget':'Peso al que quieres llegar','rt.optional':'(opcional)',
+      'rt.weeks':'¿En cuántas semanas?','rt.nWeeks':'{n} semanas',
+      'rt.habitHint':'Si lo dejas vacío, te armo una ruta de constancia (sin meta de peso).',
+      'rt.go':'Fijar mi meta','rt.later':'Ahora no',
+      'rt.fromTo':'De {a} a {b} en {n} semanas','rt.habitSub':'{n} semanas entrenando {e} veces por semana',
+      'rt.progress':'de tu meta','rt.week':'Semana','rt.wk':'SEM','rt.over':'Ruta terminada',
+      'rt.now':'Ahora','rt.doneW':'hecha','rt.workouts':'Entrenos','rt.line':'la línea marca',
+      'rt.wkWeight':'Llegar a {p}','rt.wkTrain':'Completar tus {n} entrenos',
+      'rt.thisWeek':'Esta semana','rt.left':'te faltan {n} entrenos','rt.weekDone':'¡semana completa! {n} entrenos',
+      'rt.ahead':'vas adelantado','rt.onTrack':'vas justo en camino','rt.behind':'vas un poco atrás',
+      'rt.logWeight':'registra tu peso para ver cómo vas',
+      'rt.doneH':'¡Terminaste tu ruta!','rt.doneP':'Mira todo lo que lograste y ponte la siguiente meta.',
+      'rt.adapt':'🔄 Adaptar mi plan a como voy','rt.change':'Cambiar meta',
+      'rt.confirm':'¿Cambiar tu meta? Tu ruta empieza de nuevo desde hoy (tus entrenos y pesos no se borran).',
+      'rt.safeFix':'Estiré tu meta a {n} semanas: es el ritmo más rápido que es sano para tu cuerpo.',
+      'rt.tooLow':'Subí tu meta a {p}: menos que eso no sería sano para tu estatura.',
+      'rt.tooFar':'Esa meta necesita más de 16 semanas. Te armé la ruta hasta {p}; cuando llegues ahí, ponemos la siguiente. 💪',
+      'rt.needWeight':'Primero dime tu peso de hoy para poder medir tu ruta.',
+      'rt.proLock':'Ver el foco de las {n} semanas completas es parte de Pro.','rt.proGo':'Activar Pro →',
       'pwa.txt':'📲 Instala GymGenio en tu teléfono y ábrela como app de verdad.',
       'pwa.btn':'Instalar app',
       'pwa.ios':'📲 Para instalarla: toca Compartir ⬆️ abajo y luego "Agregar a inicio".',
@@ -563,6 +673,30 @@
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
       'js.planOther':'Your plan is in Spanish.','js.planSwitch':'See it in English →',
+      'w.phKg':"Today's weight in kg",'w.phLb':"Today's weight in lb",
+      /* 🗺️ route to the goal */
+      'rt.lbl':'Your route','rt.h':'How you get to your goal','rt.hHabit':'Your consistency route',
+      'rt.invH':'Where do you want to get to?',
+      'rt.invP':'Set a goal and I show you, week by week, how you get there.',
+      'rt.wToday':"Today's weight",'rt.wTarget':'Weight you want to reach','rt.optional':'(optional)',
+      'rt.weeks':'In how many weeks?','rt.nWeeks':'{n} weeks',
+      'rt.habitHint':'Leave it empty and I build you a consistency route (no goal weight).',
+      'rt.go':'Set my goal','rt.later':'Not now',
+      'rt.fromTo':'From {a} to {b} in {n} weeks','rt.habitSub':'{n} weeks training {e} times a week',
+      'rt.progress':'of your goal','rt.week':'Week','rt.wk':'WK','rt.over':'Route finished',
+      'rt.now':'Now','rt.doneW':'done','rt.workouts':'Workouts','rt.line':'line says',
+      'rt.wkWeight':'Reach {p}','rt.wkTrain':'Finish your {n} workouts',
+      'rt.thisWeek':'This week','rt.left':'{n} workouts to go','rt.weekDone':'week complete! {n} workouts',
+      'rt.ahead':'you are ahead','rt.onTrack':'you are right on track','rt.behind':'you are a little behind',
+      'rt.logWeight':'log your weight to see how you are doing',
+      'rt.doneH':'You finished your route!','rt.doneP':'Look at everything you pulled off, then set the next goal.',
+      'rt.adapt':'🔄 Adapt my plan to how I am doing','rt.change':'Change goal',
+      'rt.confirm':'Change your goal? Your route restarts from today (your workouts and weights are kept).',
+      'rt.safeFix':'I stretched your goal to {n} weeks: that is the fastest pace that is healthy for your body.',
+      'rt.tooLow':'I raised your goal to {p}: anything below that would not be healthy for your height.',
+      'rt.tooFar':'That goal needs more than 16 weeks. I built your route to {p}; when you get there, we set the next one. 💪',
+      'rt.needWeight':'Tell me your weight today first so I can measure your route.',
+      'rt.proLock':'Seeing the focus of all {n} weeks is part of Pro.','rt.proGo':'Go Pro →',
       'pwa.txt':'📲 Install GymGenio on your phone and open it like a real app.',
       'pwa.btn':'Install app',
       'pwa.ios':'📲 To install it: tap Share ⬆️ below, then "Add to Home Screen".',
@@ -618,13 +752,14 @@
     guardado = leer(K_PLAN, null);
     prog = leerProgreso();
     pesos = leerPesos();
+    meta = leerMeta();
     formAbierto = false;
     form.reset();
     pintarUnidades();
     restaurarBorrador();
   }
 
-  const CAMPOS_BORRADOR = ['objetivo','nivel','dias','minutos','equipo','edad','sexo','peso','estatura','estaturaFt','estaturaIn','restricciones'];
+  const CAMPOS_BORRADOR = ['objetivo','nivel','dias','minutos','equipo','edad','sexo','peso','estatura','estaturaFt','estaturaIn','restricciones','pesoMeta','semanas'];
 
   function guardarBorrador(){
     const borrador = {};
@@ -710,17 +845,24 @@
     document.querySelectorAll('#uPeso button').forEach(b => b.classList.toggle('on', b.dataset.u === uPeso));
     document.querySelectorAll('#uAltura button').forEach(b => b.classList.toggle('on', b.dataset.u === uAltura));
     $('peso').placeholder = uPeso === 'kg' ? '78' : '172';
+    // El peso meta y el registro de peso hablan la misma unidad que el resto.
+    $('uMetaLbl').textContent = uPeso;
+    $('pesoMeta').placeholder = uPeso === 'kg' ? '72' : '158';
+    $('pesoInput').placeholder = uPeso === 'kg' ? t('w.phKg') : t('w.phLb');
     $('estatura').classList.toggle('hidden', uAltura !== 'cm');
     $('alturaFtWrap').classList.toggle('hidden', uAltura !== 'ft');
   }
   document.querySelectorAll('#uPeso button').forEach(b => b.onclick = () => {
     if (b.dataset.u === uPeso) return;
-    const kgActual = pesoEnKg();
+    const kgActual = pesoEnKg(), kgMeta = pesoMetaEnKg();
     uPeso = b.dataset.u;
     try { localStorage.setItem('gg_upeso', uPeso); } catch(e){}
-    if (kgActual) $('peso').value = uPeso === 'kg' ? kgActual : Math.round(kgActual / 0.453592 * 10) / 10;
+    const enUnidad = kg => uPeso === 'kg' ? kg : Math.round(kg / 0.453592 * 10) / 10;
+    if (kgActual) $('peso').value = enUnidad(kgActual);
+    if (kgMeta) $('pesoMeta').value = enUnidad(kgMeta);
     pintarUnidades();
     guardarBorrador();
+    pintarTodo();   // la ruta y el peso se ven en la unidad nueva
   });
   document.querySelectorAll('#uAltura button').forEach(b => b.onclick = () => {
     if (b.dataset.u === uAltura) return;
@@ -743,6 +885,12 @@
     const v = parseFloat($('peso').value);
     if (!v) return null;
     return uPeso === 'kg' ? v : Math.round(v * 0.453592 * 10) / 10;
+  }
+  function pesoMetaEnKg(){
+    const v = parseFloat($('pesoMeta').value);
+    if (!v) return null;
+    const kg = uPeso === 'kg' ? v : Math.round(v * 0.453592 * 10) / 10;
+    return kg >= 30 && kg <= 250 ? kg : null;
   }
   function alturaEnCm(){
     if (uAltura === 'cm'){
@@ -803,11 +951,12 @@
     if (!pesos.length){ $('pesoDatos').classList.add('hidden'); return; }
     $('pesoDatos').classList.remove('hidden');
     const ult = pesos[pesos.length - 1], pri = pesos[0];
-    $('pesoActual').innerHTML = ult.kg + '<small> kg</small>';
+    const partido = muestraPeso(ult.kg).split(' ');
+    $('pesoActual').innerHTML = partido[0] + '<small> ' + partido[1] + '</small>';
     const d = +(ult.kg - pri.kg).toFixed(1);
     const box = $('pesoDelta');
     if (pesos.length < 2 || d === 0){ box.textContent = ''; box.className = 'delta'; }
-    else { box.textContent = (d > 0 ? '+' : '') + d + ' kg'; box.className = 'delta ' + (d < 0 ? 'baja' : 'sube'); }
+    else { box.textContent = (d > 0 ? '+' : '−') + muestraDelta(d); box.className = 'delta ' + (d < 0 ? 'baja' : 'sube'); }
 
     // mini gráfica
     const sv = $('spark');
@@ -823,17 +972,399 @@
                    'stroke-linecap="round" stroke-linejoin="round"/>';
   }
 
-  $('pesoBtn').onclick = () => {
-    const v = parseFloat($('pesoInput').value);
-    if (!v || v < 30 || v > 250) return;
-    const f = hoyISO();
+  // Guarda un peso (siempre en kg por dentro, sin importar la unidad que use).
+  function anotarPeso(kg, fecha){
+    const f = fecha || hoyISO();
     const i = pesos.findIndex(p => p.f === f);
-    if (i >= 0) pesos[i].kg = v; else pesos.push({ f, kg: v });
+    if (i >= 0) pesos[i].kg = kg; else pesos.push({ f, kg });
     pesos.sort((a,b) => a.f.localeCompare(b.f));
     guardar(K_PESO, pesos);
+  }
+
+  $('pesoBtn').onclick = () => {
+    const kg = aKg(parseFloat($('pesoInput').value));
+    if (!kg || kg < 30 || kg > 250) return;
+    anotarPeso(kg);
     $('pesoInput').value = '';
-    pintarPeso();
+    pintarTodo();
   };
+
+  /* ================= 🗺️ RUTA A LA META ================= */
+  // La ruta es el mapa: dónde empezaste, a dónde vas, y semana por semana
+  // si de verdad estás llegando. Todo se calcula aquí (rápido y gratis);
+  // el genio solo pone el "foco" de cada semana.
+  //
+  // meta = { inicio:"2026-08-14", semanas:8, pesoInicial:84, pesoMeta:78, entrenos:3 }
+  const K_META = 'gg_meta';
+  const DIA_MS = 86400000;
+  let meta = leerMeta();
+  let avisoMeta = '';        // mensaje temporal ("estiré tu meta a un ritmo seguro")
+
+  function leerMeta(){
+    const v = leer(K_META, null);
+    if (!v || typeof v !== 'object') return null;
+    const semanas = Number(v.semanas);
+    if (!Number.isInteger(semanas) || semanas < 1 || semanas > 16) return null;
+    if (typeof v.inicio !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v.inicio)) return null;
+    const enRango = n => (n >= 30 && n <= 250 ? n : 0);
+    const entrenos = Number(v.entrenos);
+    return {
+      inicio: v.inicio,
+      semanas,
+      pesoInicial: enRango(Number(v.pesoInicial) || 0),
+      pesoMeta: enRango(Number(v.pesoMeta) || 0),
+      entrenos: entrenos >= 1 && entrenos <= 7 ? entrenos : 3
+    };
+  }
+
+  /* --- unidades: por dentro todo es kg, por fuera se ve como el usuario quiera --- */
+  function aKg(v){
+    if (!v || isNaN(v)) return 0;
+    return uPeso === 'kg' ? v : Math.round(v * 0.453592 * 10) / 10;
+  }
+  function muestraPeso(kg){
+    if (!kg) return '—';
+    return uPeso === 'kg'
+      ? (Math.round(kg * 10) / 10) + ' kg'
+      : (Math.round(kg / 0.453592 * 10) / 10) + ' lb';
+  }
+  function muestraDelta(kg){
+    const n = uPeso === 'kg' ? kg : kg / 0.453592;
+    const r = Math.round(Math.abs(n) * 10) / 10;
+    return r + (uPeso === 'kg' ? ' kg' : ' lb');
+  }
+
+  /* --- fechas (en UTC, igual que hoyISO) --- */
+  function fechaMas(iso, dias){
+    return new Date(Date.parse(iso + 'T00:00:00Z') + dias * DIA_MS).toISOString().slice(0,10);
+  }
+  function diasEntre(desde, hasta){
+    return Math.round((Date.parse(hasta + 'T00:00:00Z') - Date.parse(desde + 'T00:00:00Z')) / DIA_MS);
+  }
+
+  /* --- ritmo seguro: nunca prometemos bajar más de ~1% del peso por semana --- */
+  const ritmoMaximo = (inicial, objetivo) =>
+    objetivo < inicial ? Math.min(0.9, inicial * 0.01) : 0.4;
+
+  function semanasSeguras(inicial, objetivo){
+    if (!inicial || !objetivo) return 0;
+    const dif = Math.abs(objetivo - inicial);
+    if (dif < 0.5) return 0;
+    return Math.max(1, Math.ceil(dif / ritmoMaximo(inicial, objetivo)));
+  }
+  // Hasta dónde se puede llegar DE VERDAD en ese número de semanas sin arriesgarse.
+  function metaAlcanzable(inicial, objetivo, semanas){
+    const maxCambio = ritmoMaximo(inicial, objetivo) * semanas;
+    if (Math.abs(objetivo - inicial) <= maxCambio) return objetivo;
+    return Math.round((objetivo < inicial ? inicial - maxCambio : inicial + maxCambio) * 10) / 10;
+  }
+  // Un peso meta nunca debe dejar a la persona por debajo de un IMC de 18.5.
+  function pesoMinimoSano(){
+    const cm = alturaEnCm() || (guardado && guardado.datos && Number(guardado.datos.estatura)) || 0;
+    if (!cm || cm < 100) return 0;
+    const m = cm / 100;
+    return Math.round(18.5 * m * m * 10) / 10;
+  }
+
+  /* --- cuentas de la ruta --- */
+  const rangoSemana = i => {
+    const ini = fechaMas(meta.inicio, (i - 1) * 7);
+    return { ini, fin: fechaMas(ini, 6) };
+  };
+  function semanaHoy(){
+    const d = diasEntre(meta.inicio, hoyISO());
+    return d < 0 ? 1 : Math.floor(d / 7) + 1;
+  }
+  function entrenosDe(ini, fin){
+    return (prog.sesiones || []).filter(f => f >= ini && f <= fin).length;
+  }
+  function pesoHasta(fecha){
+    let r = null;
+    pesos.forEach(p => { if (p.f <= fecha) r = p; });
+    return r;
+  }
+  function pesoObjetivoSemana(i){
+    if (!meta.pesoMeta || !meta.pesoInicial) return 0;
+    const r = Math.min(1, i / meta.semanas);
+    return Math.round((meta.pesoInicial + (meta.pesoMeta - meta.pesoInicial) * r) * 10) / 10;
+  }
+  // La línea de HOY se mide por días vividos, no por semanas enteras: así el
+  // primer día nunca dice "vas atrasado" solo por haber empezado.
+  function pesoObjetivoHoy(){
+    if (!meta.pesoMeta || !meta.pesoInicial) return 0;
+    const total = meta.semanas * 7;
+    const vividos = Math.max(0, Math.min(total, diasEntre(meta.inicio, hoyISO())));
+    return Math.round((meta.pesoInicial + (meta.pesoMeta - meta.pesoInicial) * (vividos / total)) * 10) / 10;
+  }
+  // El peso que cuenta para la semana i (la 1 acepta el que anotó justo antes de empezar).
+  const desdeCuandoCuenta = i => i === 1 ? fechaMas(meta.inicio, -7) : rangoSemana(i).ini;
+  const metaEsDePeso = () => !!(meta && meta.pesoMeta && meta.pesoInicial);
+  function pesoConocido(){
+    const ult = pesoHasta(hoyISO());
+    if (ult) return ult.kg;
+    if (guardado && guardado.datos && Number(guardado.datos.peso)) return Number(guardado.datos.peso);
+    return 0;
+  }
+
+  // Cuánto del camino llevas (0-100).
+  function progresoMeta(){
+    if (metaEsDePeso()){
+      const actual = pesoConocido() || meta.pesoInicial;
+      const total = meta.pesoMeta - meta.pesoInicial;
+      if (!total) return 100;
+      return Math.max(0, Math.min(100, Math.round((actual - meta.pesoInicial) / total * 100)));
+    }
+    const total = meta.semanas * meta.entrenos;
+    const hechos = (prog.sesiones || []).filter(f => f >= meta.inicio).length;
+    return total ? Math.max(0, Math.min(100, Math.round(hechos / total * 100))) : 0;
+  }
+
+  // ¿Vas por encima o por debajo de la línea que lleva a tu meta?
+  function estadoLinea(){
+    if (!metaEsDePeso()) return null;
+    const ult = pesoHasta(hoyISO());
+    if (!ult || ult.f < fechaMas(meta.inicio, -7)) return null;
+    const signo = meta.pesoMeta < meta.pesoInicial ? 1 : -1;
+    const delta = Math.round((pesoObjetivoHoy() - ult.kg) * signo * 10) / 10;
+    if (delta >= 0.3) return { clase:'ok', texto:t('rt.ahead'), delta };
+    if (delta <= -0.7) return { clase:'warn', texto:t('rt.behind'), delta };
+    return { clase:'ok', texto:t('rt.onTrack'), delta };
+  }
+
+  // El resumen honesto que se le manda al genio para que adapte el plan.
+  function resumenProgreso(){
+    if (!meta) return '';
+    const s = Math.min(semanaHoy(), meta.semanas);
+    const hechos = (prog.sesiones || []).filter(f => f >= meta.inicio).length;
+    const esperados = s * meta.entrenos;
+    const partes = [];
+    partes.push(lang === 'es'
+      ? `Llevo ${s} semana(s) del plan: hice ${hechos} de ${esperados} entrenos previstos.`
+      : `I am ${s} week(s) into the plan: I did ${hechos} of ${esperados} planned workouts.`);
+    if (metaEsDePeso()){
+      const actual = pesoConocido();
+      const linea = pesoObjetivoSemana(s);
+      partes.push(lang === 'es'
+        ? `Empecé en ${meta.pesoInicial} kg, hoy estoy en ${actual} kg y la línea de esta semana marcaba ${linea} kg. Mi meta es ${meta.pesoMeta} kg en ${meta.semanas} semanas.`
+        : `I started at ${meta.pesoInicial} kg, today I am at ${actual} kg and this week's line was ${linea} kg. My goal is ${meta.pesoMeta} kg in ${meta.semanas} weeks.`);
+    }
+    return partes.join(' ').slice(0, 380);
+  }
+
+  /* --- fijar / cambiar la meta --- */
+  function fijarMeta(kgHoy, kgMeta, semanas){
+    const inicial = kgHoy || pesoConocido();
+    const avisos = [];
+    avisoMeta = '';
+    if (kgMeta){
+      if (!inicial){ avisoMeta = t('rt.needWeight'); pintarRuta(); return false; }
+      const pedido = kgMeta;
+      // 1) Nunca por debajo de un peso sano para su estatura.
+      const minimo = pesoMinimoSano();
+      if (minimo && kgMeta < minimo) kgMeta = minimo;
+      // 2) Si ni en 16 semanas se llega sano, la ruta apunta a donde SÍ se llega.
+      const seguras = semanasSeguras(inicial, kgMeta);
+      if (seguras > 16){
+        semanas = 16;
+        kgMeta = metaAlcanzable(inicial, kgMeta, 16);
+      } else if (seguras > semanas){
+        // 3) Pidió muy rápido: estiramos el tiempo, no el cuerpo.
+        semanas = seguras;
+        avisos.push(t('rt.safeFix').replace('{n}', semanas));
+      }
+      // Un solo aviso, sobre la meta que de verdad quedó.
+      if (kgMeta !== pedido){
+        avisos.unshift((minimo && kgMeta === minimo ? t('rt.tooLow') : t('rt.tooFar'))
+          .replace('{p}', muestraPeso(kgMeta)));
+      }
+    }
+    avisoMeta = avisos.join(' ');
+    if (kgHoy) anotarPeso(kgHoy);
+    meta = {
+      inicio: hoyISO(),
+      semanas: Math.max(1, Math.min(16, semanas || 8)),
+      pesoInicial: kgMeta ? inicial : 0,
+      pesoMeta: kgMeta || 0,
+      entrenos: diasDelPlan() || 3
+    };
+    guardar(K_META, meta);
+    return true;
+  }
+
+  /* --- dibujar --- */
+  function opcionesSemanas(sel){
+    return [4,6,8,12,16].map(n =>
+      '<option value="' + n + '"' + (n === sel ? ' selected' : '') + '>' +
+      t('rt.nWeeks').replace('{n}', n) + '</option>').join('');
+  }
+
+  function pintarInvitacionMeta(caja){
+    const yaTienePeso = !!pesoConocido();
+    caja.classList.remove('hidden');
+    caja.innerHTML =
+      '<div class="ruta-top"><span class="lbl">' + t('rt.lbl') + '</span>' +
+      '<h3>' + t('rt.invH') + '</h3><p class="ruta-sub">' + t('rt.invP') + '</p>' +
+      (avisoMeta ? '<div class="ruta-msg plano"><span>⚠</span><span>' + esc(avisoMeta) + '</span></div>' : '') +
+      '</div>' +
+      '<div class="metaform"><div class="row">' +
+        (yaTienePeso ? '' :
+          '<div class="field"><label for="mfHoy">' + t('rt.wToday') + ' (' + uPeso + ')</label>' +
+          '<input id="mfHoy" type="number" step="0.5" placeholder="' + (uPeso === 'kg' ? '78' : '172') + '"></div>') +
+        '<div class="field"><label for="mfMeta">' + t('rt.wTarget') + ' (' + uPeso + ') <small>' + t('rt.optional') + '</small></label>' +
+        '<input id="mfMeta" type="number" step="0.5" placeholder="' + (uPeso === 'kg' ? '72' : '158') + '"></div>' +
+        '<div class="field"><label for="mfSem">' + t('rt.weeks') + '</label>' +
+        '<select id="mfSem">' + opcionesSemanas(8) + '</select></div>' +
+      '</div>' +
+      '<p class="note">' + t('rt.habitHint') + '</p>' +
+      '<div class="acciones"><button class="btn btn-acid btn-sm" id="mfGo">' + t('rt.go') + '</button>' +
+      '<button class="linkmini" id="mfNo">' + t('rt.later') + '</button></div></div>';
+
+    $('mfGo').onclick = () => {
+      const hoy = $('mfHoy') ? aKg(parseFloat($('mfHoy').value)) : 0;
+      const objetivo = aKg(parseFloat($('mfMeta').value));
+      if (objetivo && (objetivo < 30 || objetivo > 250)) return;
+      if (fijarMeta(hoy, objetivo, parseInt($('mfSem').value, 10))) pintarTodo();
+      else pintarRuta();
+    };
+    $('mfNo').onclick = () => {
+      try { localStorage.setItem(scopedKey('gg_meta_no'), '1'); } catch(e){}
+      caja.classList.add('hidden');
+    };
+  }
+
+  function pintarRuta(){
+    const caja = $('cajaRuta');
+    if (!caja) return;
+    if (!guardado){ caja.classList.add('hidden'); return; }
+    if (!meta){
+      let oculta = false;
+      try { oculta = localStorage.getItem(scopedKey('gg_meta_no')) === '1'; } catch(e){}
+      if (oculta){ caja.classList.add('hidden'); return; }
+      pintarInvitacionMeta(caja);
+      return;
+    }
+
+    caja.classList.remove('hidden');
+    const esPeso = metaEsDePeso();
+    const sHoy = semanaHoy();
+    const terminada = sHoy > meta.semanas;
+    const sMostrada = Math.min(sHoy, meta.semanas);
+    const pct = progresoMeta();
+    const estado = estadoLinea();
+    const rutaIA = (guardado.plan && Array.isArray(guardado.plan.ruta)) ? guardado.plan.ruta : [];
+    const focoDe = i => rutaIA.find(r => Number(r.semana) === i) || null;
+
+    /* ---- cabecera: a dónde vas y cuánto llevas ---- */
+    let h = '<div class="ruta-top"><span class="lbl">' + t('rt.lbl') + '</span>';
+    h += '<h3>' + (esPeso ? t('rt.h') : t('rt.hHabit')) + '</h3>';
+    h += '<p class="ruta-sub">' + esc(esPeso
+      ? t('rt.fromTo').replace('{a}', muestraPeso(meta.pesoInicial)).replace('{b}', muestraPeso(meta.pesoMeta)).replace('{n}', meta.semanas)
+      : t('rt.habitSub').replace('{n}', meta.semanas).replace('{e}', meta.entrenos)) + '</p>';
+    h += '<div class="goalbar"><span style="width:' + pct + '%"></span></div>';
+    h += '<div class="goal-nums"><span><b>' + pct + '%</b> ' + t('rt.progress') + '</span><span>' +
+         (terminada ? t('rt.over') : t('rt.week') + ' <b>' + sMostrada + '</b> / ' + meta.semanas) + '</span></div>';
+
+    if (avisoMeta) h += '<div class="ruta-msg plano"><span>⚠</span><span>' + esc(avisoMeta) + '</span></div>';
+
+    /* ---- el mensaje de ESTA semana: lo único que tiene que hacer hoy ---- */
+    if (terminada){
+      h += '<div class="ruta-msg"><span>🎉</span><span><b>' + t('rt.doneH') + '</b> ' + t('rt.doneP') + '</span></div>';
+    } else {
+      const r = rangoSemana(sMostrada);
+      const hechos = entrenosDe(r.ini, r.fin);
+      const faltan = Math.max(0, meta.entrenos - hechos);
+      const trozos = [];
+      trozos.push(faltan
+        ? t('rt.left').replace('{n}', faltan)
+        : t('rt.weekDone').replace('{n}', hechos));
+      if (esPeso){
+        if (estado) trozos.push(estado.texto + (Math.abs(estado.delta) >= 0.1
+          ? ' (' + (estado.delta > 0 ? '−' : '+') + muestraDelta(estado.delta) + ')' : ''));
+        else trozos.push(t('rt.logWeight'));
+      }
+      h += '<div class="ruta-msg"><span>' + (faltan ? '💪' : '✅') + '</span><span><b>' +
+           t('rt.thisWeek') + ':</b> ' + esc(trozos.join(' · ')) + '</span></div>';
+    }
+    h += '</div>';
+
+    /* ---- semana por semana ---- */
+    for (let i = 1; i <= meta.semanas; i++){
+      const r = rangoSemana(i);
+      const hechos = entrenosDe(r.ini, r.fin);
+      const pasada = i < sHoy, ahora = i === sHoy;
+      const completa = hechos >= meta.entrenos;
+      const clase = pasada ? (completa ? 'ok' : 'floja') : (ahora ? 'now' : 'futura');
+
+      let pastilla = '';
+      if (pasada) pastilla = completa
+        ? '<span class="pill ok">✓ ' + t('rt.doneW') + '</span>'
+        : '<span class="pill warn">' + hechos + '/' + meta.entrenos + '</span>';
+      else if (ahora) pastilla = '<span class="pill now">' + t('rt.now') + '</span>';
+
+      const f = focoDe(i);
+      const titulo = (f && f.foco) || (esPeso
+        ? t('rt.wkWeight').replace('{p}', muestraPeso(pesoObjetivoSemana(i)))
+        : t('rt.wkTrain').replace('{n}', meta.entrenos));
+
+      // bolitas de entrenos de esa semana
+      let bolitas = '';
+      for (let k = 0; k < meta.entrenos; k++) bolitas += '<i class="' + (k < hechos ? 'on' : '') + '"></i>';
+      const extra = hechos > meta.entrenos ? ' +' + (hechos - meta.entrenos) : '';
+
+      const pesoSem = pasada || ahora ? pesoHasta(r.fin) : null;
+      const pesoDeEsaSemana = pesoSem && pesoSem.f >= desdeCuandoCuenta(i) ? pesoSem.kg : 0;
+
+      h += '<div class="wk ' + clase + '">';
+      h += '<div class="wk-n">' + t('rt.wk') + ' ' + String(i).padStart(2,'0') + '</div>';
+      h += '<div class="wk-body"><div class="wk-head"><span class="wk-foco">' + esc(titulo) + '</span>' + pastilla + '</div>';
+      if (f && f.meta) h += '<div class="wk-meta">' + esc(f.meta) + '</div>';
+      h += '<div class="wk-stats"><span>' + t('rt.workouts') + ' <b>' + hechos + '/' + meta.entrenos + '</b>' + extra +
+           ' <span class="dots">' + bolitas + '</span></span>';
+      if (esPeso){
+        h += '<span>' + (pesoDeEsaSemana ? '<b>' + muestraPeso(pesoDeEsaSemana) + '</b> · ' : '') +
+             t('rt.line') + ' ' + muestraPeso(pesoObjetivoSemana(i)) + '</span>';
+      }
+      h += '</div></div></div>';
+    }
+
+    /* ---- lo que falta por desbloquear + botones ---- */
+    if (rutaIA.length && rutaIA.length < meta.semanas){
+      const href = userEmail ? (STRIPE_PRO + '?prefilled_email=' + encodeURIComponent(userEmail)) : '/login.html';
+      h += '<div class="ruta-lock">🔒 ' + t('rt.proLock').replace('{n}', meta.semanas) +
+           ' <a href="' + href + '"' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + t('rt.proGo') + '</a></div>';
+    }
+    h += '<div class="ruta-pie">' +
+         '<button class="btn btn-acid btn-sm" id="rtAdapt">' + t('rt.adapt') + '</button>' +
+         '<button class="btn btn-line btn-sm" id="rtChange">' + t('rt.change') + '</button>' +
+         '</div>';
+
+    caja.innerHTML = h;
+    avisoMeta = '';
+
+    // 🔄 Rehacer el plan con lo que DE VERDAD pasó estas semanas.
+    $('rtAdapt').onclick = () => {
+      if (!guardado || !guardado.datos || !guardado.datos.objetivo){
+        formAbierto = true; pintarFormulario();
+        sepNuevo.scrollIntoView({ behavior:'smooth', block:'start' });
+        return;
+      }
+      generar(Object.assign({}, guardado.datos, {
+        idioma: lang,
+        progreso: resumenProgreso(),
+        // El plan nuevo se arma con el cuerpo de HOY, no con el del primer día.
+        peso: pesoConocido() || guardado.datos.peso || '',
+        pesoMeta: meta.pesoMeta || '',
+        semanas: meta.semanas
+      }), true);
+    };
+    $('rtChange').onclick = () => {
+      if (!confirm(t('rt.confirm'))) return;
+      meta = null;
+      try { localStorage.removeItem(scopedKey(K_META)); localStorage.removeItem(scopedKey('gg_meta_no')); } catch(e){}
+      pintarRuta();
+      caja.scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+  }
 
   /* ================= TEMPORIZADOR ================= */
   let tId = null, tSeg = 0;
@@ -1071,7 +1602,10 @@
   // El iPhone no da ese aviso automático: hay que explicarle los 2 toques.
   if (!yaInstalada && /iphone|ipad|ipod/i.test(navigator.userAgent)) modoInstalar = 'ios';
 
-  function pintarTodo(){ pintarDash(); pintarPlan(); pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida(); }
+  function pintarTodo(){
+    pintarUnidades(); pintarDash(); pintarRuta(); pintarPlan();
+    pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida();
+  }
 
   /* ================= GENERAR ================= */
   let generando = false;
@@ -1099,6 +1633,33 @@
       }
       guardado = { plan: json.plan, esPro: !!json.esPro, datos, creado: hoyISO(), lang: (datos && datos.idioma) || lang };
       guardar(K_PLAN, guardado);
+
+      // 🗺️ Si pidió una meta, el servidor devuelve las semanas REALES (estiradas
+      // si el ritmo era peligroso). Si ya tenía la misma meta, NO reiniciamos su ruta.
+      const entrenosPlan = (json.plan.dias || []).length || 3;
+      if (json.meta && json.meta.semanas){
+        const objetivoKg = Number(json.meta.pesoMeta) || 0;
+        // La ruta solo vuelve a empezar si cambió de verdad a dónde quiere llegar.
+        const mismaMeta = !!(meta && meta.pesoMeta === objetivoKg);
+        meta = {
+          inicio: mismaMeta ? meta.inicio : hoyISO(),
+          semanas: json.meta.semanas,
+          pesoInicial: objetivoKg
+            ? ((mismaMeta && meta.pesoInicial) || Number(datos.peso) || pesoConocido())
+            : 0,
+          pesoMeta: objetivoKg,
+          entrenos: entrenosPlan
+        };
+        guardar(K_META, meta);
+        const avisos = [];
+        if (json.meta.pesoAjustado) avisos.push(t('rt.tooFar').replace('{p}', muestraPeso(meta.pesoMeta)));
+        if (json.meta.ajustadaPorSalud) avisos.push(t('rt.safeFix').replace('{n}', meta.semanas));
+        avisoMeta = avisos.join(' ');
+        try { localStorage.removeItem(scopedKey('gg_meta_no')); } catch(e){}
+      } else if (meta && meta.entrenos !== entrenosPlan){
+        meta.entrenos = entrenosPlan;
+        guardar(K_META, meta);
+      }
       limpiarBorrador();
       limpiarSessionUrl();
       if (json.esPro && !cuentaPro){ cuentaPro = true; pintarCuenta(); }
@@ -1133,6 +1694,8 @@
       peso: pesoEnKg() || '',
       estatura: alturaEnCm() || '',
       sexo: $('sexo').value,
+      pesoMeta: pesoMetaEnKg() || '',
+      semanas: $('semanas').value,
       idioma: lang,
       sessionId
     }, extra || {});

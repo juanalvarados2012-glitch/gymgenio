@@ -20,12 +20,41 @@ que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
 
 - **Página que vende** (precios, cómo funciona, preguntas, aviso de salud) ✅
 - **El genio (IA)** arma planes reales — gratis (1 día) y Pro (semana + comidas) ✅
+- **🗺️ Ruta a la meta con tracking semanal** ✅ → ver abajo
 - **Pago de $14.99/mes** con Stripe ✅
 - **Guardia anti-tramposos** (nadie entra al Pro sin pagar) ✅
 - **Cuentas** (registro + login con Supabase) ✅
 - **Cuentas conectadas al pago** ✅ → entrar con tu cuenta = ver tu Pro
   (la app le pregunta a Stripe si tu email tiene suscripción activa)
 - **Se despliega solo** (Claude sube los cambios a Vercel directo) ✅
+
+## 🗺️ La ruta a la meta (lo nuevo)
+
+La persona dice **a dónde quiere llegar** (peso meta + en cuántas semanas) y GymGenio
+le dibuja el camino **semana por semana** y le mide si de verdad va llegando.
+
+**Lo que ve:**
+- Una barra: *"18% de tu meta · Semana 3 de 8"*.
+- Un mensaje corto cada semana: *"Esta semana: te faltan 2 entrenos · vas un poco atrás (+1.1 kg)"*.
+- La lista de las 8 semanas: el foco de cada una (lo pone el genio), los entrenos
+  hechos (3/3 con bolitas) y su peso comparado con **la línea** que lleva a la meta.
+- Un botón **🔄 Adaptar mi plan a como voy**: le manda al genio los números REALES
+  (*"hice 6 de 9 entrenos y voy 1.1 kg arriba de la línea"*) y le arma un plan nuevo
+  más fácil si va atrasado, o más exigente si va adelantado.
+
+**Los seguros de salud (esto es importante):**
+- Nunca promete bajar más de ~1% del peso por semana (tope 0.9 kg). Si pide 6 kg en
+  2 semanas, la app **estira el tiempo sola** y se lo explica con cariño.
+- Nunca deja poner una meta por debajo de un peso sano para su estatura (IMC 18.5).
+- Si la meta necesita más de 16 semanas, arma la ruta hasta donde SÍ se llega:
+  *"Te armé la ruta hasta 69.6 kg; cuando llegues ahí, ponemos la siguiente. 💪"*
+- Estos tres seguros están **en la app y también en el servidor**, para que nadie
+  se los salte y para que el genio nunca reciba un ritmo peligroso como si fuera sano.
+
+**Gratis vs Pro:** el seguimiento semanal completo es **gratis** (es lo que engancha).
+El **foco que escribe el genio para cada semana** es de Pro: gratis ve 2 semanas.
+
+**¿Sin meta de peso?** Igual arma una *ruta de constancia*: N semanas entrenando X veces.
 
 ### Cómo funciona el flujo completo
 1. La persona crea su cuenta 👤
