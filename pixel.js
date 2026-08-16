@@ -25,6 +25,9 @@
   // Llaves para no repetir eventos aunque el usuario recargue la página.
   var K_REGISTRO = 'gg_fb_registro';
   var K_COMPRA = 'gg_fb_compra';
+  // Este vive en sessionStorage (se borra al cerrar la pestaña), no en el otro:
+  // querer pagar hoy y querer pagar mañana son dos intentos distintos.
+  var K_CHECKOUT = 'gg_fb_checkout';
 
   function leer(k) {
     try { return localStorage.getItem(k) || ''; } catch (e) { return ''; }
@@ -97,25 +100,43 @@
     track('Purchase', { value: PRECIO_PRO_USD, currency: MONEDA_PRO });
   }
 
-  // Tocó un botón de pago y se va a Stripe. ESTE es el evento que de verdad
-  // alimenta a Meta: para aprender a quién mostrar el anuncio necesita ~50
-  // conversiones por semana, y compras de $14.99 nunca van a ser 50 al principio.
-  // Clics al checkout sí. A diferencia de los otros dos, este NO se guarda:
-  // si alguien lo intenta tres veces, queremos ver los tres intentos.
+  // Tocó un botón de pago: empezó el camino de la compra. ESTE es el evento que
+  // de verdad alimenta a Meta: para aprender a quién mostrar el anuncio necesita
+  // ~50 conversiones por semana, y compras de $14.99 nunca van a ser 50 al
+  // principio. Clics al checkout sí. Sin esta señal el anuncio gasta a ciegas.
+  //
+  // Se manda UNA vez por visita (sessionStorage), no una por página: el camino
+  // normal de alguien que llega del anuncio es
+  //     precios → login → Stripe
+  // y las tres son la MISMA intención de compra. Si contáramos cada clic, una
+  // sola persona parecerían tres y Meta aprendería de un número inflado.
+  // Cerrar la pestaña y volver mañana sí cuenta como intento nuevo: lo es.
   function checkout() {
+    try {
+      if (sessionStorage.getItem(K_CHECKOUT)) return;
+      sessionStorage.setItem(K_CHECKOUT, '1');
+    } catch (e) {} // modo incógnito o storage bloqueado: mejor medir de más
     track('InitiateCheckout', { value: PRECIO_PRO_USD, currency: MONEDA_PRO });
   }
 
   window.ggPixel = { track: track, registro: registro, compra: compra, checkout: checkout };
 
   // 🎯 Un solo vigilante para TODOS los botones de pago de todas las páginas.
-  // Los enlaces a Stripe se arman en varios lugares (index, login, y dentro de
+  // Los botones de pago se arman en varios lugares (index, login, y dentro de
   // app.html se dibujan con innerHTML cuando aparece la ruta o el upsell). Poner
   // el evento en cada uno sería olvidarse de alguno tarde o temprano; en cambio
   // escuchamos el clic aquí arriba y preguntamos a dónde iba.
+  //
+  // Contamos dos casos, porque los dos son "quiero pagar":
+  //   · un enlace directo a Stripe (quien ya inició sesión), y
+  //   · un botón marcado con data-gg-pago (quien NO ha iniciado sesión y por eso
+  //     pasa primero por /login.html). Este segundo es la mayoría de la gente
+  //     que llega desde un anuncio, así que sin él no mediríamos casi nada.
   document.addEventListener('click', function (ev) {
-    var destino = ev.target && ev.target.closest && ev.target.closest('a[href]');
-    if (destino && destino.href.indexOf('buy.stripe.com') !== -1) checkout();
+    var destino = ev.target && ev.target.closest && ev.target.closest('a[href], [data-gg-pago]');
+    if (!destino) return;
+    if (destino.hasAttribute('data-gg-pago') ||
+        String(destino.href || '').indexOf('buy.stripe.com') !== -1) checkout();
   }, true);
 
   // ---------- Buscar el número del pixel en Vercel ----------

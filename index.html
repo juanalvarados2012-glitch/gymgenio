@@ -314,7 +314,7 @@
           <li data-i18n="price.p4">Plans sized to your weight, age and level</li>
           <li data-i18n="price.p5">Cancel anytime, one click</li>
         </ul>
-        <a href="/login.html" class="btn" id="btnPro" data-i18n="price.proCta">Go Pro · $14.99/mo</a>
+        <a href="/login.html" class="btn" id="btnPro" data-gg-pago data-i18n="price.proCta">Go Pro · $14.99/mo</a>
         <div class="price-trust"><b>✓</b><span data-i18n="price.note">Secure checkout via Stripe · Cancel anytime</span></div>
       </div>
     </div>
@@ -432,6 +432,9 @@
     if (pro){
       btnPro.textContent = lang === 'es' ? '✓ Ya eres Pro' : "✓ You're Pro";
       btnPro.href = '/app.html'; btnPro.removeAttribute('target');
+      // Ya pagó: este botón dejó de ser un botón de pago, así que no debe
+      // contar como "empezó a comprar" cuando lo toque.
+      btnPro.removeAttribute('data-gg-pago');
     } else {
       btnPro.textContent = lang === 'es' ? 'Hazte Pro · $14.99/mes' : 'Go Pro · $14.99/mo';
       btnPro.href = STRIPE_PRO + '?prefilled_email=' + encodeURIComponent(email);

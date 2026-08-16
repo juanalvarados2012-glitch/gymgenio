@@ -1404,7 +1404,7 @@
     if (!guardado.esPro && rutaIA.length && rutaIA.length < meta.semanas){
       const href = userEmail ? (STRIPE_PRO + '?prefilled_email=' + encodeURIComponent(userEmail)) : '/login.html';
       h += '<div class="ruta-lock">🔒 ' + t('rt.proLock').replace('{n}', meta.semanas) +
-           ' <a href="' + href + '"' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + t('rt.proGo') + '</a></div>';
+           ' <a href="' + href + '" data-gg-pago' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + t('rt.proGo') + '</a></div>';
     }
     h += '<div class="ruta-pie">' +
          '<button class="btn btn-acid btn-sm" id="rtAdapt">' + t('rt.adapt') + '</button>' +
@@ -1673,7 +1673,7 @@
       const txt = userEmail ? t('js.upsellPro') : t('js.upsellNew');
       cajaUpsell.className = 'upsell';
       cajaUpsell.innerHTML = '<h3>' + t('js.upsellH') + '</h3><p>' + esc(plan.nota || t('js.upsellP')) + '</p>' +
-        '<a class="btn" href="' + href + '"' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + txt + '</a>';
+        '<a class="btn" href="' + href + '" data-gg-pago' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + txt + '</a>';
       cajaUpsell.classList.remove('hidden');
     } else {
       cajaUpsell.className = 'hidden';
