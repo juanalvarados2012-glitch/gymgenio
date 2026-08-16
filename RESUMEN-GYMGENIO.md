@@ -64,12 +64,48 @@ El **foco que escribe el genio para cada semana** es de Pro: gratis ve 2 semanas
 
 ---
 
+## 🛠️ Repaso de calidad (agosto 2026)
+
+**Un agujero de seguridad que costaba dinero.** El contador de calorías (`/api/comida`)
+dejaba entrar a cualquiera que llevara un `session_id` de Stripe — y ese número no es
+secreto: viaja en la URL, queda en el historial, se comparte por WhatsApp. Una sola
+persona que pagara podía darle Pro gratis a medio internet, y cada foto es una llamada
+de IA que **tú pagas**. Ahora el recibo solo vale si el correo del pago es el mismo de
+la cuenta que pide. Además esa puerta no tenía freno ni revisaba de qué web venía la
+llamada: ya tiene las dos cosas (12 fotos cada 15 min, y solo desde gymgenio).
+
+**El guardia vive en un solo lugar.** Antes cada archivo de `/api` tenía su propia copia
+de "¿quién eres? ¿pagaste?", y por eso el arreglo se hizo en uno y se olvidó en el otro.
+Ahora está en `api/_comun.js` y todos lo usan: se arregla una vez, queda arreglado.
+
+**La racha se rompía sola fuera de Europa.** La app usaba la fecha de horario universal.
+Alguien en México que entrena a las 8 de la noche ya era "mañana" para la app: su racha
+se cortaba y sus comidas se guardaban en el día equivocado. Ahora todo usa **el reloj de
+la persona** (el navegador le manda su zona al servidor).
+
+**Otras mejoras**
+- Se puede **quitar una comida** mal contada (antes el total del día quedaba mal para siempre).
+- Sin internet sale un aviso claro en vez de `Failed to fetch`, y la app avisa que puede
+  seguir usándose para marcar ejercicios.
+- El descanso ya no se congela si bloqueas el teléfono a media serie, y **pita** al terminar.
+- Marcar un ejercicio ya no vuelve a dibujar el plan entero: no se pierde el teclado ni se
+  cierran los días que abriste.
+- La app abre más rápido: las dos preguntas al servidor salen a la vez, no en fila.
+- El botón de quitar mide 40x40 (antes 22x22: imposible atinarle con la mano sudada).
+
+> ⚠️ Estos arreglos se revisaron a mano, **no tienen pruebas automáticas**. No hay
+> ningún archivo de test en el proyecto todavía. Lo que más las merece: el guardia
+> (`esProDeVerdad`), los frenos y la ruta segura de peso.
+
 ## 🔧 Lo que falta
 
 ### Marketing — traer los primeros clientes
 - Grabar el **Reel de lanzamiento** en Instagram (guion ya listo:
   *"Tengo 14 y creé una app de IA que te arma tu rutina de gym"*)
 - Plan de los **$50 en anuncios** apuntando a gente fitness
+- El pixel ya mide las 4 etapas: `PageView` → `CompleteRegistration` (armó su
+  plan gratis) → `InitiateCheckout` (tocó pagar) → `Purchase` (pagó). En 3-4 días
+  de anuncios se ve **dónde se cae la gente**, y eso decide qué construir después.
 
 ### Detalles / pulido
 - Acentos y traducciones principales en inglés/español ✅

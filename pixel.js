@@ -6,6 +6,7 @@
    Eventos que mandamos:
      · PageView             -> automático, en cada página
      · CompleteRegistration -> cuando alguien termina el onboarding gratis
+     · InitiateCheckout     -> automático, al tocar cualquier botón de pago
      · Purchase             -> cuando Stripe confirma el pago de Pro
 
    Para usarlo desde cualquier página:
@@ -96,7 +97,26 @@
     track('Purchase', { value: PRECIO_PRO_USD, currency: MONEDA_PRO });
   }
 
-  window.ggPixel = { track: track, registro: registro, compra: compra };
+  // Tocó un botón de pago y se va a Stripe. ESTE es el evento que de verdad
+  // alimenta a Meta: para aprender a quién mostrar el anuncio necesita ~50
+  // conversiones por semana, y compras de $14.99 nunca van a ser 50 al principio.
+  // Clics al checkout sí. A diferencia de los otros dos, este NO se guarda:
+  // si alguien lo intenta tres veces, queremos ver los tres intentos.
+  function checkout() {
+    track('InitiateCheckout', { value: PRECIO_PRO_USD, currency: MONEDA_PRO });
+  }
+
+  window.ggPixel = { track: track, registro: registro, compra: compra, checkout: checkout };
+
+  // 🎯 Un solo vigilante para TODOS los botones de pago de todas las páginas.
+  // Los enlaces a Stripe se arman en varios lugares (index, login, y dentro de
+  // app.html se dibujan con innerHTML cuando aparece la ruta o el upsell). Poner
+  // el evento en cada uno sería olvidarse de alguno tarde o temprano; en cambio
+  // escuchamos el clic aquí arriba y preguntamos a dónde iba.
+  document.addEventListener('click', function (ev) {
+    var destino = ev.target && ev.target.closest && ev.target.closest('a[href]');
+    if (destino && destino.href.indexOf('buy.stripe.com') !== -1) checkout();
+  }, true);
 
   // ---------- Buscar el número del pixel en Vercel ----------
   fetch('/api/config')
