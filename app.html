@@ -334,6 +334,10 @@
 </head>
 <body>
 
+<!-- 📣 Meta Pixel (Facebook). El número vive en Vercel: META_PIXEL_ID -->
+<script src="/pixel.js"></script>
+<noscript><img height="1" width="1" style="display:none" alt="" src="/api/px?ev=PageView"></noscript>
+
 <nav><div class="wrap">
   <a class="mark" href="/"><img src="/logo-emblem.png" alt=""> GYMGENIO</a>
   <div class="navr">
@@ -1663,6 +1667,12 @@
         guardar(K_META, meta);
       }
       limpiarBorrador();
+      // 📣 Anuncios (Meta Pixel): aquí es donde termina de verdad el onboarding
+      // gratis — ya existe el plan. El pixel se encarga de no repetirlo.
+      if (window.ggPixel) window.ggPixel.registro();
+      // Si volvió de Stripe con su boleto y el servidor confirmó que es Pro,
+      // esa es la compra real. Usa el precio de pixel.js (GG_PRO_PRECIO_USD).
+      if (window.ggPixel && sessionId && json.esPro) window.ggPixel.compra(sessionId);
       limpiarSessionUrl();
       if (json.esPro && !cuentaPro){ cuentaPro = true; pintarCuenta(); }
       formAbierto = false;
@@ -1884,6 +1894,9 @@
     try {
       const est = await (await fetch('/api/estado', { headers:{ Authorization:'Bearer ' + token } })).json();
       if (est && est.email){ userEmail = est.email; cuentaPro = !!est.pro; pintarCuenta(); }
+      // 📣 Anuncios: llegó de vuelta de Stripe (?session_id=...) y el servidor
+      // dice que ya es Pro -> el pago ocurrió. Se manda una sola vez por pago.
+      if (window.ggPixel && sessionId && est && est.pro) window.ggPixel.compra(sessionId);
     } catch(e){}
   }
   // Si es Pro, traemos el total de comidas de hoy para mostrarlo al abrir.

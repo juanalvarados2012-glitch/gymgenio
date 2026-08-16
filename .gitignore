@@ -15,3 +15,5 @@ desktop.ini
 # Nunca subir llaves
 .env
 .env.*
+# ...pero la plantilla SÍ se sube: no tiene valores, solo los nombres.
+!.env.example
