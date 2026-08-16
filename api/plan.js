@@ -3,172 +3,20 @@
 // Recibe la meta del usuario, se la pasa a la IA de Anthropic, y devuelve el plan.
 // NO confía en el navegador: el servidor decide solo si el usuario es Pro.
 
-const limiteSolicitudes = new Map();
-const VENTANA_LIMITE_MS = 15 * 60 * 1000;
+// El guardia (¿quién eres? ¿pagaste?) y los frenos viven en _comun.js:
+// una sola copia para toda la app, para que no se nos quede una puerta abierta.
+import {
+  fetchConTiempo, textoSeguro, numeroOpcional, origenPermitido, ipCliente,
+  crearLimitador, emailDelToken, esProDeVerdad, jsonDeLaIA
+} from './_comun.js';
+
 const MAX_BODY_BYTES = 24 * 1024;
 
-async function fetchConTiempo(url, opciones, milisegundos = 10000) {
-  const controlador = new AbortController();
-  const temporizador = setTimeout(() => controlador.abort(), milisegundos);
-  try {
-    return await fetch(url, { ...(opciones || {}), signal: controlador.signal });
-  } finally {
-    clearTimeout(temporizador);
-  }
-}
+// 🛡️ DOS FRENOS que trabajan juntos contra los robots que quieran gastar tu
+// presupuesto de IA. El corto frena la ráfaga; el largo frena al insistente.
+const frenoRafaga = crearLimitador({ ventanaMs: 60 * 1000, maximo: 6, maximoRegistros: 5000 });
+const frenoLargo  = crearLimitador({ ventanaMs: 15 * 60 * 1000, maximo: 30 });
 
-function origenPermitido(req) {
-  const origen = req.headers && req.headers.origin;
-  if (!origen) return true; // llamadas de servidor a servidor no llevan Origin
-  if (origen === 'null') return false;
-  const hosts = [req.headers.host, req.headers['x-forwarded-host']]
-    .filter(Boolean)
-    .flatMap(h => String(h).split(',').map(x => x.trim()))
-    .filter(Boolean);
-  return hosts.some(host => origen === 'https://' + host || origen === 'http://' + host);
-}
-
-function ipCliente(req) {
-  const reenviado = req.headers && (req.headers['x-forwarded-for'] || req.headers['x-real-ip']);
-  return String(reenviado || 'unknown').split(',')[0].trim().slice(0, 100) || 'unknown';
-}
-
-function revisarLimite(req, email) {
-  const ahora = Date.now();
-  const identidad = email ? 'user:' + emailSeguro(email) : 'ip:' + ipCliente(req);
-  let cubeta = limiteSolicitudes.get(identidad);
-  if (!cubeta || ahora - cubeta.inicio >= VENTANA_LIMITE_MS) {
-    cubeta = { inicio: ahora, cantidad: 0 };
-  }
-  cubeta.cantidad++;
-  limiteSolicitudes.set(identidad, cubeta);
-  if (limiteSolicitudes.size > 2000) {
-    for (const [clave, valor] of limiteSolicitudes) {
-      if (ahora - valor.inicio >= VENTANA_LIMITE_MS) limiteSolicitudes.delete(clave);
-    }
-  }
-  const maximo = email ? 30 : 5;
-  return {
-    permitido: cubeta.cantidad <= maximo,
-    espera: Math.max(1, Math.ceil((VENTANA_LIMITE_MS - (ahora - cubeta.inicio)) / 1000))
-  };
-}
-
-// Saca el correo del usuario a partir de su token de Supabase.
-async function emailDelToken(auth) {
-  if (!auth || auth.indexOf('Bearer ') !== 0) return '';
-  const token = auth.slice(7).trim();
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY || '';
-  if (!token || !url) return '';
-  try {
-    const r = await fetchConTiempo(url + '/auth/v1/user', {
-      headers: { Authorization: 'Bearer ' + token, apikey: key }
-    });
-    if (!r.ok) return '';
-    const u = await r.json();
-    return u && u.email ? u.email : '';
-  } catch (e) {
-    return '';
-  }
-}
-
-function textoSeguro(value, max) {
-  return typeof value === 'string' ? value.trim().slice(0, max) : '';
-}
-
-function numeroOpcional(value, min, max, entero) {
-  if (value === '' || value === null || value === undefined) return '';
-  const n = Number(value);
-  if (!Number.isFinite(n) || n < min || n > max || (entero && !Number.isInteger(n))) return '';
-  return n;
-}
-
-function emailSeguro(value) {
-  return typeof value === 'string' ? value.trim().toLowerCase() : '';
-}
-
-// Le pregunta a Stripe si ese correo tiene una suscripción ACTIVA.
-async function tieneSuscripcion(email) {
-  const sk = process.env.STRIPE_SECRET_KEY;
-  email = emailSeguro(email);
-  if (!sk || !email) return false;
-  try {
-    const c = await fetchConTiempo(
-      'https://api.stripe.com/v1/customers?limit=1&email=' + encodeURIComponent(email),
-      { headers: { Authorization: 'Bearer ' + sk } }
-    );
-    if (!c.ok) return false;
-    const lista = await c.json();
-    for (const cliente of (lista.data || [])) {
-      for (const estado of ['active', 'trialing']) {
-        const s = await fetchConTiempo(
-          'https://api.stripe.com/v1/subscriptions?limit=1&status=' + estado + '&customer=' + encodeURIComponent(cliente.id),
-          { headers: { Authorization: 'Bearer ' + sk } }
-        );
-        if (!s.ok) continue;
-        const subs = await s.json();
-        if ((subs.data || []).length > 0) return true;
-      }
-    }
-  } catch (e) {
-    console.error('No se pudo revisar Stripe:', e);
-  }
-  return false;
-}
-
-// Plan B: acaba de pagar y viene de Stripe con ?session_id=...
-// El boleto solo vale si hay una cuenta iniciada y el correo del recibo coincide.
-async function pagoRecienHecho(sessionId, emailCuenta) {
-  const sk = process.env.STRIPE_SECRET_KEY;
-  if (!sk || !sessionId) return false;
-  try {
-    const ver = await fetchConTiempo(
-      'https://api.stripe.com/v1/checkout/sessions/' + encodeURIComponent(sessionId),
-      { headers: { Authorization: 'Bearer ' + sk } }
-    );
-    if (!ver.ok) return false;
-    const sesion = await ver.json();
-    const emailPago = emailSeguro(
-      (sesion.customer_details && sesion.customer_details.email) || sesion.customer_email
-    );
-    const cuenta = emailSeguro(emailCuenta);
-    if (!emailPago || !cuenta || emailPago !== cuenta) return false;
-    return sesion.status === 'complete' && sesion.payment_status === 'paid';
-  } catch (e) {
-    console.error('No se pudo verificar el pago:', e);
-    return false;
-  }
-}
-
-// 🛡️ LÍMITE POR IP: frena a los robots que quieran gastar tu presupuesto de IA.
-// Vive en la memoria de la función (se reinicia si Vercel la duerme), pero corta
-// en seco un bucle desde una misma IP. Es gratis y no necesita base de datos.
-const PETICIONES = new Map(); // ip -> [horas de cada intento]
-const VENTANA_MS = 60 * 1000; // 1 minuto
-const MAX_POR_VENTANA = 6;    // máximo 6 planes por minuto por IP
-
-function ipDe(req) {
-  const xf = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  return xf || (req.socket && req.socket.remoteAddress) || 'desconocida';
-}
-
-function pasaLimite(ip) {
-  const ahora = Date.now();
-  if (PETICIONES.size > 5000) PETICIONES.clear(); // no dejar crecer la memoria
-  const previas = (PETICIONES.get(ip) || []).filter(t => ahora - t < VENTANA_MS);
-  if (previas.length >= MAX_POR_VENTANA) {
-    PETICIONES.set(ip, previas);
-    return false;
-  }
-  previas.push(ahora);
-  PETICIONES.set(ip, previas);
-  return true;
-}
-
-// 🗺️ Ritmo SEGURO de cambio de peso. El genio nunca promete milagros:
-// bajar como mucho ~1% del peso por semana (tope 0.9 kg) y subir como mucho 0.4 kg.
-// Devuelve las semanas MÍNIMAS que hacen falta para esa meta sin arriesgar la salud.
 // 🔌 INTERRUPTOR DE SEGURIDAD: si NVIDIA falla, la dejamos descansando 10 min.
 // Así nadie más espera de balde a una IA que ya sabemos que no contesta; cuando
 // pasa el rato la volvemos a probar sola (si revive, volvemos a lo gratis).
@@ -232,6 +80,8 @@ async function pedirANvidia(key, prompt, milisegundos) {
   return texto;
 }
 
+// 🗺️ Ritmo SEGURO de cambio de peso. El genio nunca promete milagros:
+// bajar como mucho ~1% del peso por semana (tope 0.9 kg) y subir como mucho 0.4 kg.
 function ritmoMaximo(pesoInicial, pesoMeta) {
   return pesoMeta < pesoInicial ? Math.min(0.9, pesoInicial * 0.01) : 0.4;
 }
@@ -348,7 +198,10 @@ export default async function handler(req, res) {
   }
 
   // 🛡️ Freno anti-robots ANTES de gastar un centavo de IA.
-  if (!pasaLimite(ipDe(req))) {
+  const ip = ipCliente(req);
+  const rafaga = frenoRafaga.revisar('ip:' + ip);
+  if (!rafaga.permitido) {
+    res.setHeader('Retry-After', String(rafaga.espera));
     return res.status(429).json({
       error: es ? 'Vas muy rápido. Espera unos segundos y vuelve a intentarlo.'
                 : 'You are going too fast. Wait a few seconds and try again.'
@@ -360,8 +213,11 @@ export default async function handler(req, res) {
   // más abajo, solo cuando de verdad hace falta.
   const API_KEY = process.env.ANTHROPIC_API_KEY;
 
+  // Con cuenta damos más margen (30 planes cada 15 min); sin cuenta, 5.
   const email = await emailDelToken(req.headers.authorization || '');
-  const limite = revisarLimite(req, email);
+  const limite = email
+    ? frenoLargo.revisar('user:' + email)
+    : frenoLargo.revisar('ip:' + ip, 5);
   if (!limite.permitido) {
     res.setHeader('Retry-After', String(limite.espera));
     return res.status(429).json({
@@ -370,9 +226,8 @@ export default async function handler(req, res) {
     });
   }
 
-  // 🚪 EL GUARDIA: Pro solo si Stripe lo confirma.
-  let esPro = await tieneSuscripcion(email);
-  if (!esPro) esPro = await pagoRecienHecho(sessionId, email);
+  // 🚪 EL GUARDIA: Pro solo si Stripe lo confirma (y el recibo es de ESTA cuenta).
+  const esPro = await esProDeVerdad(email, sessionId);
 
   // Datos del cuerpo (son opcionales: si no los puso, no los inventamos).
   const datosCuerpo = [
@@ -595,17 +450,9 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
       }
     }
 
-    texto = String(texto || '').replace(/```(?:json)?/gi, '').trim();
-
-    const ini = texto.indexOf('{');
-    const fin = texto.lastIndexOf('}');
-    if (ini !== -1 && fin !== -1) texto = texto.slice(ini, fin + 1);
-
-    let plan;
-    try {
-      plan = JSON.parse(texto);
-    } catch (e) {
-      console.error('No se pudo leer el JSON devuelto por la IA.');
+    let plan = jsonDeLaIA(texto);
+    if (!plan) {
+      console.error('No se pudo leer el JSON devuelto por la IA (' + motorUsado + ').');
       return res.status(502).json({
         error: es ? 'El genio se confundió al escribir tu plan. Intenta de nuevo.'
                   : 'The genie got its wires crossed writing your plan. Try again.'

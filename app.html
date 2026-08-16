@@ -235,6 +235,14 @@
   .comida-lista .cl-row:last-child,.cres-det .cl-row:last-child{border-bottom:none}
   .comida-lista .cl-food,.cres-det .cl-food{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .comida-lista .cl-kcal,.cres-det .cl-kcal{color:var(--acid);font-weight:700;white-space:nowrap}
+  /* El botón de quitar mide 40x40 aunque la ✕ se vea chiquita: en el teléfono,
+     con la mano sudada, un blanco de 22px no se le atina. */
+  .comida-lista .cl-row{align-items:center;padding:2px 0}
+  .cl-del{flex:none;background:none;border:none;color:var(--muted);font:inherit;font-size:1rem;
+    min-width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;border-radius:6px;opacity:.55;transition:.15s}
+  .cl-del:hover{opacity:1;color:#FFB3B3;background:rgba(255,179,179,.12)}
+  .cl-del:disabled{opacity:.3;cursor:wait}
   .spark{flex:1;min-width:120px;height:44px}
 
   /* ---------- TEMPORIZADOR ---------- */
@@ -314,7 +322,7 @@
     body{background:#fff;color:#000}
     body::after,nav,form,.dash,.peso,.ajuste,.upsell,.bar,.aviso,.contacto,.sep,.timer,
     .plan-top .acciones,.tick,.desc,.chev,.dia-estado,.ruta-pie,.metaform,.ruta-lock,
-    #cargando,#error{display:none !important}
+    .comida-box,.langswap,#cargando,#error{display:none !important}
     .wrap{max-width:100%;padding:0}
     .plan,.plan-top,.dia,.bloque,.ruta,.ruta-top,.wk{background:#fff !important;border-color:#ccc !important;color:#000}
     .wk.futura{opacity:1}
@@ -355,6 +363,9 @@
   </header>
 
   <div class="bar" id="cuentaBar"></div>
+
+  <!-- Aviso de "te quedaste sin internet" (la app sigue sirviendo) -->
+  <div class="bar hidden" id="offlineBar" role="status"></div>
 
   <!-- Invitación a instalar la app (solo aparece si se puede instalar) -->
   <div class="bar hidden" id="instalarBar">
@@ -570,7 +581,7 @@
 </div>
 
 <!-- TEMPORIZADOR DE DESCANSO -->
-<div class="timer" id="timer">
+<div class="timer" id="timer" role="timer" aria-label="Rest timer">
   <span class="lbl" style="color:#3A4A00" data-i18n="tm.rest">Rest</span>
   <span class="t" id="timerT">0:60</span>
   <button id="timerMas">+30s</button>
@@ -623,6 +634,8 @@
       'js.myPlan':'Tu plan','js.myPlanSub':'Marca cada ejercicio mientras entrenas. Todo se guarda solo.',
       'js.upsellH':'¿Te gustó tu primer día?','js.upsellP':'Con GymGenio Pro recibes tu semana completa, tu plan de comidas y cambios ilimitados.',
       'js.upsellPro':'Activar Pro · $14.99/mes','js.upsellNew':'Crea tu cuenta y hazte Pro','js.err':'Algo salió mal.',
+      'js.netErr':'No pude hablar con el genio. Revisa tu internet y vuelve a intentarlo.',
+      'js.offlineBar':'📴 Sin internet. Puedes seguir marcando tus ejercicios: todo se guarda en tu teléfono.',
       'js.saved':'Guardado en este dispositivo','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
@@ -661,7 +674,8 @@
       'cm.conf':'Confianza','cm.confbaja':'baja','cm.confmedia':'media','cm.confalta':'alta',
       'cm.noFood':'Mmm, eso no parece comida. Prueba con una foto de tu plato. 🍽️',
       'cm.again':'📸 Analizar otra comida','cm.todayH':'Comidas de hoy',
-      'cm.est':'estimado','cm.range':'rango','cm.breakdown':'Desglose'
+      'cm.est':'estimado','cm.range':'rango','cm.breakdown':'Desglose',
+      'cm.del':'Quitar','cm.delAsk':'¿Quitar esta comida del total de hoy?'
     },
     en:{
       'js.building':'Building…','js.free':'FREE','js.myacc':'my account','js.out':'log out',
@@ -673,6 +687,8 @@
       'js.myPlan':'Your plan','js.myPlanSub':'Tick each exercise as you train. Everything saves by itself.',
       'js.upsellH':'Liked your first day?','js.upsellP':'GymGenio Pro gets you the full week, your meal plan and unlimited changes.',
       'js.upsellPro':'Go Pro · $14.99/mo','js.upsellNew':'Create your account and go Pro','js.err':'Something went wrong.',
+      'js.netErr':"I couldn't reach the genie. Check your connection and try again.",
+      'js.offlineBar':'📴 No connection. Keep ticking your exercises — everything saves on your phone.',
       'js.saved':'Saved on this device','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
@@ -712,7 +728,8 @@
       'cm.conf':'Confidence','cm.confbaja':'low','cm.confmedia':'medium','cm.confalta':'high',
       'cm.noFood':"Hmm, that doesn't look like food. Try a photo of your plate. 🍽️",
       'cm.again':'📸 Analyze another meal','cm.todayH':'Today’s meals',
-      'cm.est':'estimate','cm.range':'range','cm.breakdown':'Breakdown'
+      'cm.est':'estimate','cm.range':'range','cm.breakdown':'Breakdown',
+      'cm.del':'Remove','cm.delAsk':"Remove this meal from today's total?"
     }
   };
   let lang = 'en';
@@ -728,7 +745,18 @@
   const scopedKey = k => storageScope === 'guest' ? k : k + ':' + storageScope;
   const leer = (k, x) => { try { return JSON.parse(localStorage.getItem(scopedKey(k))) ?? x; } catch(e){ return x; } };
   const guardar = (k, v) => { try { localStorage.setItem(scopedKey(k), JSON.stringify(v)); } catch(e){} };
-  const hoyISO = () => new Date().toISOString().slice(0,10);
+  // 📅 HOY según el reloj de la persona, no el de Londres.
+  // toISOString() da la fecha en horario universal. Alguien en México que
+  // termina su entreno a las 8 de la noche ya sería "mañana" para el reloj
+  // universal: su racha se rompía sola y la semana de su ruta salía movida.
+  const fechaISO = d => {
+    const dosCifras = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + dosCifras(d.getMonth() + 1) + '-' + dosCifras(d.getDate());
+  };
+  const hoyISO = () => fechaISO(new Date());
+  // Minutos de diferencia con el horario universal. Se lo mandamos al servidor
+  // para que guarde las comidas en el día correcto de la persona.
+  const zonaHoraria = () => new Date().getTimezoneOffset();
   const leerProgreso = () => {
     const value = leer(K_PROG, null) || {};
     return {
@@ -822,6 +850,43 @@
 
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+  /* ================= HABLAR CON EL SERVIDOR ================= */
+  // Un solo lugar para pedirle cosas a /api. Antes, si se caía el internet a
+  // media rutina, la persona veía "Failed to fetch" — un mensaje que no le dice
+  // nada a nadie. Ahora siempre sale algo que se entiende y en su idioma.
+  async function pedir(ruta, opciones){
+    let resp;
+    try {
+      resp = await fetch(ruta, opciones);
+    } catch (e){
+      throw new Error(t('js.netErr'));
+    }
+    let json = {};
+    try { json = await resp.json(); } catch(e){}
+    if (!resp.ok) throw new Error(json.error || t('js.err'));
+    return json;
+  }
+
+  // Los encabezados que llevan la identidad de la persona.
+  function cabeceras(){
+    const h = { 'content-type':'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+
+  /* ================= SIN INTERNET ================= */
+  // La app sigue funcionando sin señal (marcar ejercicios, ver el plan, pesarse).
+  // Lo único que necesita internet es el genio. Vale la pena decirlo claro.
+  function pintarConexion(){
+    const sinRed = navigator.onLine === false;
+    const barra = $('offlineBar');
+    if (!barra) return;
+    barra.classList.toggle('hidden', !sinRed);
+    if (sinRed) barra.textContent = t('js.offlineBar');
+  }
+  window.addEventListener('online', pintarConexion);
+  window.addEventListener('offline', pintarConexion);
 
   /* ================= IDIOMA ================= */
   function setLang(l){
@@ -932,9 +997,9 @@
     if (!s.size) return 0;
     const d = new Date();
     // si hoy todavía no entrena, la racha sigue viva contando desde ayer
-    if (!s.has(d.toISOString().slice(0,10))) d.setDate(d.getDate() - 1);
+    if (!s.has(fechaISO(d))) d.setDate(d.getDate() - 1);
     let n = 0;
-    while (s.has(d.toISOString().slice(0,10))) { n++; d.setDate(d.getDate() - 1); }
+    while (s.has(fechaISO(d))) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
   function diasDelPlan(){ return guardado && guardado.plan && guardado.plan.dias ? guardado.plan.dias.length : 0; }
@@ -1038,7 +1103,9 @@
     return r + (uPeso === 'kg' ? ' kg' : ' lb');
   }
 
-  /* --- fechas (en UTC, igual que hoyISO) --- */
+  /* --- fechas: sumar y restar días a un "2026-08-16" ---
+     Aquí sí usamos horario universal a propósito: son cuentas entre dos fechas
+     ya escritas, no "¿qué día es hoy?". Así ningún cambio de horario las mueve. */
   function fechaMas(iso, dias){
     return new Date(Date.parse(iso + 'T00:00:00Z') + dias * DIA_MS).toISOString().slice(0,10);
   }
@@ -1373,25 +1440,83 @@
   }
 
   /* ================= TEMPORIZADOR ================= */
-  let tId = null, tSeg = 0;
+  // El descanso se mide guardando la HORA EN QUE TERMINA, no restando de uno en
+  // uno. Cuando bloqueas el teléfono a media serie el navegador congela los
+  // contadores: así el descanso se quedaba pegado y marcaba de más. Con la hora
+  // de final, vuelves a mirar la pantalla y el número siempre es el correcto.
+  let tId = null, tFin = 0;
+
+  const segundosRestantes = () => Math.max(0, Math.round((tFin - Date.now()) / 1000));
+
   function pintarT(){
-    const m = Math.floor(tSeg / 60), s = tSeg % 60;
-    $('timerT').textContent = m + ':' + String(s).padStart(2,'0');
+    const seg = segundosRestantes();
+    $('timerT').textContent = Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2,'0');
   }
-  function pararT(){ clearInterval(tId); tId = null; $('timer').classList.remove('on'); }
+  function pararT(){
+    clearInterval(tId); tId = null; tFin = 0;
+    $('timer').classList.remove('on');
+  }
+
+  // Un pitido corto, para cuando dejas el teléfono en el piso y no lo ves.
+  function pitar(){
+    try {
+      const Sonido = window.AudioContext || window.webkitAudioContext;
+      if (!Sonido) return;
+      const ctx = new Sonido();
+      const nota = ctx.createOscillator(), volumen = ctx.createGain();
+      nota.frequency.value = 880;
+      volumen.gain.setValueAtTime(0.0001, ctx.currentTime);
+      volumen.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+      volumen.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
+      nota.connect(volumen); volumen.connect(ctx.destination);
+      nota.start(); nota.stop(ctx.currentTime + 0.45);
+      setTimeout(() => { try { ctx.close(); } catch(e){} }, 800);
+    } catch(e){}
+  }
+
   function arrancarT(seg){
-    tSeg = seg; pintarT();
+    tFin = Date.now() + seg * 1000;
+    pintarT();
     $('timer').classList.add('on');
     clearInterval(tId);
     tId = setInterval(() => {
-      tSeg--; pintarT();
-      if (tSeg <= 0){ pararT(); try { navigator.vibrate && navigator.vibrate([200,80,200]); } catch(e){} }
-    }, 1000);
+      pintarT();
+      if (segundosRestantes() > 0) return;
+      // Si terminó mientras la app estaba escondida, no avisamos tarde y de más.
+      const mirando = !document.hidden;
+      pararT();
+      if (mirando){
+        pitar();
+        try { navigator.vibrate && navigator.vibrate([200,80,200]); } catch(e){}
+      }
+    }, 250);
   }
   $('timerX').onclick = pararT;
-  $('timerMas').onclick = () => { tSeg += 30; pintarT(); };
+  $('timerMas').onclick = () => { if (tFin){ tFin += 30000; pintarT(); } };
+  // Al desbloquear el teléfono, el número se pone al día enseguida.
+  document.addEventListener('visibilitychange', () => { if (tFin && !document.hidden) pintarT(); });
 
   /* ================= PLAN ================= */
+  // Vuelve a calcular la barrita y el "3/8" de UN día, sin tocar nada más.
+  // Dibujar el plan entero cada vez que marcas un ejercicio se veía mal: el
+  // teclado perdía el foco y los días que habías abierto se cerraban solos.
+  function refrescarDia(i){
+    if (!guardado || !guardado.plan) return;
+    const dia = (guardado.plan.dias || [])[i];
+    const nodo = resultado.querySelector('[data-dia="' + i + '"]');
+    if (!dia || !nodo) return;
+    const ejs = dia.ejercicios || [];
+    const hechos = ejs.filter((_, j) => prog.ej[i + '-' + j]).length;
+    const barra = nodo.querySelector('.prog span');
+    if (barra) barra.style.width = (ejs.length ? Math.round(hechos / ejs.length * 100) : 0) + '%';
+    const meta = nodo.querySelector('.dia-info .meta');
+    if (meta){
+      meta.textContent = (dia.duracion ? dia.duracion + ' · ' : '') +
+        ejs.length + ' ' + t('js.exercises') +
+        (hechos && !prog.dias[i] ? ' · ' + hechos + '/' + ejs.length : '');
+    }
+  }
+
   function pintarPlan(){
     if (!guardado || !guardado.plan || !Array.isArray(guardado.plan.dias)){
       if (guardado){ guardado = null; try { localStorage.removeItem(scopedKey(K_PLAN)); } catch(e){} }
@@ -1493,21 +1618,22 @@
         if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
       };
     });
-    // marcar ejercicio
+    // Marcar / desmarcar un ejercicio: se cambia SOLO lo que cambió.
     resultado.querySelectorAll('.tick').forEach(b => {
       b.onclick = e => {
         e.stopPropagation();
         const k = b.dataset.ej;
-        if (prog.ej[k]) delete prog.ej[k]; else prog.ej[k] = true;
+        const marcado = !prog.ej[k];
+        if (marcado) prog.ej[k] = true; else delete prog.ej[k];
         guardar(K_PROG, prog);
-        pintarPlan();
-        const d = k.split('-')[0];
-        const nodo = resultado.querySelector('[data-dia="' + d + '"]');
-        if (nodo){
-          nodo.classList.add('abierto');
-          const cabeza = nodo.querySelector('.dia-head');
-          if (cabeza) cabeza.setAttribute('aria-expanded', 'true');
-        }
+
+        b.classList.toggle('on', marcado);
+        b.setAttribute('aria-label', marcado ? t('js.unmark') : t('js.mark'));
+        const fila = b.closest('.ej');
+        const texto = fila && fila.querySelector('.ej-txt');
+        if (texto) texto.classList.toggle('tachado', marcado);
+
+        refrescarDia(Number(k.split('-')[0]));
       };
     });
     // descanso
@@ -1610,7 +1736,7 @@
 
   function pintarTodo(){
     pintarUnidades(); pintarDash(); pintarRuta(); pintarPlan();
-    pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida();
+    pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida(); pintarConexion();
   }
 
   /* ================= GENERAR ================= */
@@ -1625,13 +1751,10 @@
     ajusteBtn.disabled = true;
     const txtOriginal = submit.textContent;
     submit.textContent = t('js.building');
-    const headers = { 'content-type':'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
     try {
-      const resp = await fetch('/api/plan', { method:'POST', headers, body: JSON.stringify(datos) });
-      let json;
-      try { json = await resp.json(); } catch(e) { json = {}; }
-      if (!resp.ok) throw new Error(json.error || t('js.err'));
+      const json = await pedir('/api/plan', {
+        method: 'POST', headers: cabeceras(), body: JSON.stringify(datos)
+      });
       if (!json.plan || !Array.isArray(json.plan.dias) || !json.plan.dias.length) throw new Error(t('js.err'));
       if (reiniciarProgreso){
         prog = { ej:{}, dias:{}, sesiones: (prog.sesiones || []) };
@@ -1807,12 +1930,41 @@
         '<span>' + t('cm.mCarb') + ' <b>' + comidasHoy.total.carbos + 'g</b></span>' +
         '<span>' + t('cm.mFat') + ' <b>' + comidasHoy.total.grasa + 'g</b></span>';
       lista.classList.remove('hidden');
+      // Cada comida lleva su botón de quitar: el genio estima, no adivina, y
+      // una foto mal leída no debería arruinarte el total del día para siempre.
       lista.innerHTML = '<p class="sub" style="margin:0 0 6px">' + t('cm.todayH') + '</p>' +
         items.map(it => '<div class="cl-row"><span class="cl-food">' + esc(it.alimentos || '') +
-          '</span><span class="cl-kcal">' + (Number(it.calorias) || 0) + ' ' + t('cm.kcal') + '</span></div>').join('');
+          '</span><span class="cl-kcal">' + (Number(it.calorias) || 0) + ' ' + t('cm.kcal') + '</span>' +
+          (it.id ? '<button type="button" class="cl-del" data-borrar="' + esc(it.id) + '" title="' +
+            esc(t('cm.del')) + '" aria-label="' + esc(t('cm.del')) + '">✕</button>' : '') +
+          '</div>').join('');
+      lista.querySelectorAll('[data-borrar]').forEach(b => {
+        b.onclick = () => borrarComida(b.dataset.borrar, b);
+      });
     } else {
       hoy.classList.add('hidden');
       lista.classList.add('hidden');
+    }
+  }
+
+  // Quitar una comida del día (me equivoqué, o el genio se pasó de generoso).
+  async function borrarComida(id, boton){
+    if (!confirm(t('cm.delAsk'))) return;
+    if (boton) boton.disabled = true;
+    $('comidaError').classList.add('hidden');
+    try {
+      // El qué y el cuándo van en la dirección: no todos los servidores leen el
+      // cuerpo de un DELETE. El boleto de Stripe sí va en el cuerpo (no en la URL).
+      const json = await pedir('/api/comida?id=' + encodeURIComponent(id) +
+        '&zona=' + zonaHoraria() + '&idioma=' + encodeURIComponent(lang), {
+        method: 'DELETE', headers: cabeceras(), body: JSON.stringify({ sessionId })
+      });
+      comidasHoy = json.hoy || null;
+      pintarComida();
+    } catch (err){
+      if (boton) boton.disabled = false;
+      $('comidaError').textContent = err.message;
+      $('comidaError').classList.remove('hidden');
     }
   }
 
@@ -1823,14 +1975,10 @@
     const btn = $('comidaBtn'); btn.disabled = true;
     try {
       const dataUrl = await comprimirFoto(file);
-      const headers = { 'content-type':'application/json' };
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-      const resp = await fetch('/api/comida', {
-        method:'POST', headers,
-        body: JSON.stringify({ imagen: dataUrl, idioma: lang, sessionId })
+      const json = await pedir('/api/comida', {
+        method: 'POST', headers: cabeceras(),
+        body: JSON.stringify({ imagen: dataUrl, idioma: lang, sessionId, zona: zonaHoraria() })
       });
-      const json = await resp.json();
-      if (!resp.ok) throw new Error(json.error || t('js.err'));
       if (json.hoy) comidasHoy = json.hoy;
       pintarResultadoComida(json.analisis);
       pintarComida();
@@ -1891,20 +2039,18 @@
   }
   pintarCuenta();
   if (token){
-    try {
-      const est = await (await fetch('/api/estado', { headers:{ Authorization:'Bearer ' + token } })).json();
-      if (est && est.email){ userEmail = est.email; cuentaPro = !!est.pro; pintarCuenta(); }
-      // 📣 Anuncios: llegó de vuelta de Stripe (?session_id=...) y el servidor
-      // dice que ya es Pro -> el pago ocurrió. Se manda una sola vez por pago.
-      if (window.ggPixel && sessionId && est && est.pro) window.ggPixel.compra(sessionId);
-    } catch(e){}
-  }
-  // Si es Pro, traemos el total de comidas de hoy para mostrarlo al abrir.
-  if (token && cuentaPro){
-    try {
-      const cj = await (await fetch('/api/comida', { headers:{ Authorization:'Bearer ' + token } })).json();
-      if (cj && cj.hoy) comidasHoy = cj.hoy;
-    } catch(e){}
+    // Las dos preguntas salen A LA VEZ. Antes iban en fila y cada una esperaba
+    // su propia respuesta de Stripe: la app tardaba el doble en abrir.
+    // Si alguna falla, seguimos igual: el plan guardado se ve sin internet.
+    const [est, comidas] = await Promise.all([
+      pedir('/api/estado', { headers: cabeceras() }).catch(() => null),
+      pedir('/api/comida?zona=' + zonaHoraria(), { headers: cabeceras() }).catch(() => null)
+    ]);
+    if (est && est.email){ userEmail = est.email; cuentaPro = !!est.pro; pintarCuenta(); }
+    // 📣 Anuncios: llegó de vuelta de Stripe (?session_id=...) y el servidor
+    // dice que ya es Pro -> el pago ocurrió. Se manda una sola vez por pago.
+    if (window.ggPixel && sessionId && est && est.pro) window.ggPixel.compra(sessionId);
+    if (comidas && comidas.hoy) comidasHoy = comidas.hoy;
   }
   pintarTodo();
 </script>
