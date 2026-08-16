@@ -1,0 +1,9 @@
+# Cosas que NO se suben al servidor.
+#
+# Vercel publica todo lo que está en la carpeta. Sin esta lista, las pruebas
+# quedarían accesibles en gymgenio.vercel.app/pruebas/... — no son secretas,
+# pero no tienen por qué estar ahí, y ocupan espacio en cada despliegue.
+pruebas/
+
+# El logo original y los archivos de trabajo tampoco hacen falta en el servidor.
+logo-original.jpeg

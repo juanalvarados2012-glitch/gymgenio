@@ -82,11 +82,11 @@ async function pedirANvidia(key, prompt, milisegundos) {
 
 // 🗺️ Ritmo SEGURO de cambio de peso. El genio nunca promete milagros:
 // bajar como mucho ~1% del peso por semana (tope 0.9 kg) y subir como mucho 0.4 kg.
-function ritmoMaximo(pesoInicial, pesoMeta) {
+export function ritmoMaximo(pesoInicial, pesoMeta) {
   return pesoMeta < pesoInicial ? Math.min(0.9, pesoInicial * 0.01) : 0.4;
 }
 
-function semanasSeguras(pesoInicial, pesoMeta) {
+export function semanasSeguras(pesoInicial, pesoMeta) {
   if (!pesoInicial || !pesoMeta) return 0;
   const diferencia = Math.abs(pesoMeta - pesoInicial);
   if (diferencia < 0.5) return 0;
@@ -95,7 +95,7 @@ function semanasSeguras(pesoInicial, pesoMeta) {
 
 // Hasta dónde se llega DE VERDAD en esas semanas sin arriesgar la salud.
 // Si la meta queda más lejos, la recortamos: mejor una meta que sí se cumple.
-function metaAlcanzable(pesoInicial, pesoMeta, semanas) {
+export function metaAlcanzable(pesoInicial, pesoMeta, semanas) {
   const maxCambio = ritmoMaximo(pesoInicial, pesoMeta) * semanas;
   if (Math.abs(pesoMeta - pesoInicial) <= maxCambio) return pesoMeta;
   const alcanzable = pesoMeta < pesoInicial ? pesoInicial - maxCambio : pesoInicial + maxCambio;

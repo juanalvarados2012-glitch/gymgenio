@@ -93,9 +93,29 @@ la persona** (el navegador le manda su zona al servidor).
 - La app abre más rápido: las dos preguntas al servidor salen a la vez, no en fila.
 - El botón de quitar mide 40x40 (antes 22x22: imposible atinarle con la mano sudada).
 
-> ⚠️ Estos arreglos se revisaron a mano, **no tienen pruebas automáticas**. No hay
-> ningún archivo de test en el proyecto todavía. Lo que más las merece: el guardia
-> (`esProDeVerdad`), los frenos y la ruta segura de peso.
+## 🧪 Las pruebas automáticas
+
+Se corren con **un solo comando**, sin instalar nada (usan el probador que ya
+viene dentro de Node):
+
+```
+npm test
+```
+
+**41 pruebas.** Cubren las cuatro cosas que, si se rompen, no te enteras por un
+error en pantalla sino por la factura o por alguien saliendo lastimado:
+
+| Archivo | Qué cuida |
+|---|---|
+| `pruebas/guardia.test.js` | Quién es Pro. Incluye el agujero real que ya tuvimos: **un recibo de Stripe ajeno no sirve** |
+| `pruebas/frenos.test.js` | Que un robot no te vacíe el presupuesto de IA |
+| `pruebas/fechas.test.js` | Que la racha use el reloj de la persona, no el de Europa |
+| `pruebas/ruta-segura.test.js` | Que la app **nunca** prometa "10 kg en 2 semanas" |
+
+> Cada prueba se comprobó rompiendo el código a propósito para ver que sí falla.
+> Una prueba que no sabe fallar no está cuidando nada.
+
+**Si `npm test` falla, NO subas ese cambio.** Algo que ya funcionaba se rompió.
 
 ## 🔧 Lo que falta
 
