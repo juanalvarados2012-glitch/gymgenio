@@ -26,7 +26,42 @@ que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
 - **Cuentas** (registro + login con Supabase) ✅
 - **Cuentas conectadas al pago** ✅ → entrar con tu cuenta = ver tu Pro
   (la app le pregunta a Stripe si tu email tiene suscripción activa)
+- **☁️ Tu progreso vive en tu cuenta, no solo en el teléfono** ✅ → ver abajo
+- **La app abre en tu idioma** ✅ (antes siempre abría en inglés)
 - **Se despliega solo** (Claude sube los cambios a Vercel directo) ✅
+
+## ☁️ El progreso ya no se pierde (lo nuevo)
+
+Antes el plan, las marcas, la racha y los pesos vivían **solo dentro del navegador**.
+Perder el teléfono en la semana 6 de la ruta era perder las seis semanas. Vendemos un
+plan de 8 semanas: el guardado tiene que aguantar 8 semanas.
+
+Ahora, si la persona tiene cuenta, todo eso también vive en su cuenta y aparece en
+cualquier dispositivo donde entre.
+
+**Lo difícil no era subirlo, era qué hacer cuando el teléfono y el servidor no dicen
+lo mismo** (pasa siempre: entrenas en el gimnasio sin señal y en la casa abres otra
+pantalla). La regla fácil — "gana el último que escribió" — **borra entrenos**. Por eso
+hay dos reglas distintas, en `nube.js`:
+
+- **Lo que se reemplaza** (el plan, la meta): gana el más reciente. Solo puede haber un
+  plan a la vez.
+- **Lo que solo crece** (sesiones hechas, pesos anotados): se juntan los dos. Un entreno
+  que pasó, pasó; ningún dispositivo tiene derecho a borrarlo.
+- **Las marcas de ejercicios** solo se juntan si los dos hablan del *mismo* plan. Si no,
+  el plan nuevo aparecería con ejercicios marcados que la persona nunca hizo.
+
+**Seguros que tiene:**
+- Si la tabla del servidor todavía no existe, **la nube se apaga sola** y la app funciona
+  exactamente como antes. Nada se rompe. (Falta correr `SETUP-NUBE-PAPA.md`.)
+- Sin internet todo sigue guardándose en el teléfono y sube cuando vuelve la señal.
+- Un dispositivo recién estrenado **nunca** borra lo que hay en la cuenta.
+- Al cerrar sesión la nube se apaga: lo que haga un invitado no sube a la cuenta de nadie.
+
+**El idioma.** La app siempre abría en inglés, para todo el mundo. Alguien en Ecuador
+entraba y veía la página en un idioma que no es el suyo, y el plan que generaba salía
+en inglés también. Ahora la primera vez se mira el idioma del navegador; si la persona
+elige idioma alguna vez, su elección manda siempre.
 
 ## 🗺️ La ruta a la meta (lo nuevo)
 
@@ -102,8 +137,9 @@ viene dentro de Node):
 npm test
 ```
 
-**41 pruebas.** Cubren las cuatro cosas que, si se rompen, no te enteras por un
-error en pantalla sino por la factura o por alguien saliendo lastimado:
+**63 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
+error en pantalla sino por la factura, por alguien saliendo lastimado, o porque
+un día la racha de alguien aparece más corta y esa persona cree que se equivocó ella:
 
 | Archivo | Qué cuida |
 |---|---|
@@ -111,6 +147,8 @@ error en pantalla sino por la factura o por alguien saliendo lastimado:
 | `pruebas/frenos.test.js` | Que un robot no te vacíe el presupuesto de IA |
 | `pruebas/fechas.test.js` | Que la racha use el reloj de la persona, no el de Europa |
 | `pruebas/ruta-segura.test.js` | Que la app **nunca** prometa "10 kg en 2 semanas" |
+| `pruebas/nube.test.js` | Que sincronizar **nunca borre** entrenos ni pesos |
+| `pruebas/nube-arranque.test.js` | Que el cable esté puesto: carga `app.html` de verdad y comprueba que el progreso baja, sube, y que sin la tabla creada nada se rompe |
 
 > Cada prueba se comprobó rompiendo el código a propósito para ver que sí falla.
 > Una prueba que no sabe fallar no está cuidando nada.
@@ -118,6 +156,23 @@ error en pantalla sino por la factura o por alguien saliendo lastimado:
 **Si `npm test` falla, NO subas ese cambio.** Algo que ya funcionaba se rompió.
 
 ## 🔧 Lo que falta
+
+### ⚠️ Primero que nada: encender la nube
+- **Papá tiene que correr el SQL de `SETUP-NUBE-PAPA.md`** (5 minutos, una sola vez).
+  Mientras no lo haga, la app funciona igual que antes pero el progreso sigue viviendo
+  solo en el teléfono. **No corre prisa y no rompe nada**, pero hasta que se haga, la
+  promesa del plan de 8 semanas sigue sin estar respaldada.
+- Cuando esté hecho: entrar con la misma cuenta desde dos navegadores distintos y ver
+  que el plan aparece en los dos. Esa es la prueba de que quedó bien.
+
+### Después (el plan del núcleo)
+- **Fichas de técnica** por ejercicio + la voz del navegador leyéndolas. Es el hallazgo
+  #1 de los dos análisis: el principiante no sabe si está haciendo bien el movimiento.
+- **Check-in de 10 segundos** al terminar (esfuerzo 1–5, qué ejercicio costó) y una
+  tarjeta que diga *qué nos dijiste → qué cambiamos → por qué*. Hace visible que la IA
+  aprende, que hoy no se nota.
+- **Revisión de técnica por video** (grabar 10 s, analizar 6 fotos con el tubo que ya
+  existe en `api/comida.js`). Es el diferenciador, pero va al final.
 
 ### Marketing — traer los primeros clientes
 - Grabar el **Reel de lanzamiento** en Instagram (guion ya listo:

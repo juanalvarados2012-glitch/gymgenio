@@ -246,9 +246,19 @@
   tabLogin.onclick  = () => { modo='login';  tabLogin.classList.add('on');  tabSignup.classList.remove('on'); btn.textContent = tabLogin.textContent;  limpiarMsg(); };
   tabSignup.onclick = () => { modo='signup'; tabSignup.classList.add('on'); tabLogin.classList.remove('on');  btn.textContent = tabSignup.textContent; limpiarMsg(); };
 
-  let guardado = 'en';
-  try { guardado = localStorage.getItem('gg_lang') || 'en'; } catch(e){}
-  setLang(guardado === 'es' ? 'es' : 'en');
+  // 🌐 Idioma de arranque: manda lo que la persona eligió alguna vez; si nunca
+  // eligió, se le hace caso al navegador. Antes siempre abría en inglés.
+  function idiomaInicial(){
+    let elegido = '';
+    try { elegido = localStorage.getItem('gg_lang') || ''; } catch(e){}
+    if (elegido === 'es' || elegido === 'en') return elegido;
+    try {
+      const nav = (navigator.languages && navigator.languages.length)
+        ? navigator.languages[0] : navigator.language;
+      return String(nav || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+    } catch(e){ return 'en'; }
+  }
+  setLang(idiomaInicial());
 
   let sb;
   try {

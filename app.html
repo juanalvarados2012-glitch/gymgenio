@@ -590,6 +590,7 @@
 
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  import { fusionar, normalizar, hayAlgoQueGuardar } from './nube.js';
   const STRIPE_PRO = "https://buy.stripe.com/aFa5kFcuNesMb7S5Ya4Vy06";
 
   /* ================= IDIOMA ================= */
@@ -636,7 +637,7 @@
       'js.upsellPro':'Activar Pro · $14.99/mes','js.upsellNew':'Crea tu cuenta y hazte Pro','js.err':'Algo salió mal.',
       'js.netErr':'No pude hablar con el genio. Revisa tu internet y vuelve a intentarlo.',
       'js.offlineBar':'📴 Sin internet. Puedes seguir marcando tus ejercicios: todo se guarda en tu teléfono.',
-      'js.saved':'Guardado en este dispositivo','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
+      'js.saved':'Guardado en este dispositivo','js.savedCloud':'Guardado en tu cuenta','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
       'js.planOther':'Tu plan está en inglés.','js.planSwitch':'Verlo en español →',
@@ -689,7 +690,7 @@
       'js.upsellPro':'Go Pro · $14.99/mo','js.upsellNew':'Create your account and go Pro','js.err':'Something went wrong.',
       'js.netErr':"I couldn't reach the genie. Check your connection and try again.",
       'js.offlineBar':'📴 No connection. Keep ticking your exercises — everything saves on your phone.',
-      'js.saved':'Saved on this device','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
+      'js.saved':'Saved on this device','js.savedCloud':'Saved to your account','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
       'js.planOther':'Your plan is in Spanish.','js.planSwitch':'See it in English →',
@@ -744,7 +745,12 @@
   let storageScope = 'guest';
   const scopedKey = k => storageScope === 'guest' ? k : k + ':' + storageScope;
   const leer = (k, x) => { try { return JSON.parse(localStorage.getItem(scopedKey(k))) ?? x; } catch(e){ return x; } };
-  const guardar = (k, v) => { try { localStorage.setItem(scopedKey(k), JSON.stringify(v)); } catch(e){} };
+  const guardar = (k, v) => {
+    try { localStorage.setItem(scopedKey(k), JSON.stringify(v)); } catch(e){}
+    // Todo lo que se guarda aquí también sube a la nube (menos el borrador del
+    // formulario, que cambia con cada tecla y no vale la pena mandar).
+    if (k !== K_DRAFT) tocarNube();
+  };
   // 📅 HOY según el reloj de la persona, no el de Londres.
   // toISOString() da la fecha en horario universal. Alguien en México que
   // termina su entreno a las 8 de la noche ya sería "mañana" para el reloj
@@ -810,6 +816,99 @@
 
   function limpiarBorrador(){
     try { localStorage.removeItem(scopedKey(K_DRAFT)); } catch(e){}
+  }
+
+  /* ================= NUBE ================= */
+  // El plan, las marcas, la racha y los pesos vivían SOLO en este navegador.
+  // Perder el teléfono en la semana 6 de la ruta era perder las seis semanas.
+  // Ahora, si la persona tiene cuenta, todo eso también vive en su cuenta.
+  //
+  // Reglas de la casa:
+  //  1. El teléfono SIEMPRE manda primero. Se guarda local y luego se sube.
+  //     Sin internet la app funciona exactamente igual que antes.
+  //  2. Si la tabla del servidor no existe todavía, no pasa nada: la nube se
+  //     apaga sola y la app se comporta como siempre. (Ver SETUP-NUBE-PAPA.md)
+  //  3. Nunca se sube nada de quien no ha entrado con su cuenta.
+  //
+  // `var` a propósito: estas variables se leen desde `guardar()`, que puede
+  // correr antes de que este bloque se evalúe. Con `let` eso reventaría.
+  var nubeTimer = null, nubeActiva = false, nubeUserId = '';
+  const K_TS = 'gg_ts';
+
+  // Escribe sin avisar a la nube: se usa al APLICAR lo que vino del servidor,
+  // para no rebotar el mismo dato de vuelta en un bucle infinito.
+  const escribirCrudo = (k, v) => { try { localStorage.setItem(scopedKey(k), JSON.stringify(v)); } catch(e){} };
+  const borrarCrudo = k => { try { localStorage.removeItem(scopedKey(k)); } catch(e){} };
+
+  function paqueteLocal(){
+    let metaNo = false;
+    try { metaNo = localStorage.getItem(scopedKey('gg_meta_no')) === '1'; } catch(e){}
+    return normalizar({
+      ts: Number(leer(K_TS, 0)) || 0,
+      plan: leer(K_PLAN, null),
+      meta: leer(K_META, null),
+      metaNo,
+      prog: leerProgreso(),
+      pesos: leerPesos()
+    });
+  }
+
+  function aplicarPaquete(n){
+    escribirCrudo(K_TS, n.ts);
+    if (n.plan) escribirCrudo(K_PLAN, n.plan); else borrarCrudo(K_PLAN);
+    if (n.meta) escribirCrudo(K_META, n.meta); else borrarCrudo(K_META);
+    if (n.metaNo) escribirCrudo('gg_meta_no', '1'); else borrarCrudo('gg_meta_no');
+    escribirCrudo(K_PROG, n.prog);
+    escribirCrudo(K_PESO, n.pesos);
+    guardado = leer(K_PLAN, null);
+    prog = leerProgreso();
+    pesos = leerPesos();
+    meta = leerMeta();
+  }
+
+  // Algo cambió. Se apunta la hora (aunque no haya cuenta: sirve para saber
+  // quién es más reciente el día que la persona sí entre) y se programa la
+  // subida. Se espera un momento para no mandar 20 veces seguidas mientras
+  // alguien marca ejercicios rápido.
+  function tocarNube(){
+    try { localStorage.setItem(scopedKey(K_TS), JSON.stringify(Date.now())); } catch(e){}
+    if (!nubeActiva) return;
+    clearTimeout(nubeTimer);
+    nubeTimer = setTimeout(subirNube, 1500);
+  }
+
+  async function subirNube(){
+    if (!nubeActiva || !nubeUserId) return;
+    const p = paqueteLocal();
+    if (!hayAlgoQueGuardar(p)) return;   // no ensuciar el servidor con paquetes vacíos
+    try {
+      await sb.from('planes').upsert({
+        user_id: nubeUserId,
+        datos: p,
+        actualizado: new Date().toISOString()
+      });
+    } catch(e){ /* sin internet: se reintenta solo en el próximo cambio */ }
+  }
+
+  async function sincronizarNube(userId){
+    nubeActiva = false;
+    if (!sb || !userId) return;
+    nubeUserId = userId;
+    let remoto = null;
+    try {
+      const { data, error } = await sb.from('planes').select('datos').eq('user_id', userId).maybeSingle();
+      if (error) throw error;
+      remoto = data && data.datos ? data.datos : null;
+    } catch(e){
+      return;   // tabla ausente o sin internet → la app sigue igual que antes
+    }
+    nubeActiva = true;
+    const local = paqueteLocal();
+    const unido = fusionar(local, remoto);
+    aplicarPaquete(unido);
+    pintarTodo();
+    // Si el teléfono traía algo que el servidor no tenía, súbelo ya (sin esperar).
+    if (JSON.stringify(unido) !== JSON.stringify(normalizar(remoto))) subirNube();
   }
 
   /* ================= ELEMENTOS ================= */
@@ -900,6 +999,19 @@
     pintarCuenta(); pintarTodo();
   }
   document.querySelectorAll('#lang button').forEach(b => b.onclick = () => setLang(b.dataset.lang));
+
+  // Qué idioma mostrar al abrir. Manda lo que la persona eligió; si nunca
+  // eligió, se le hace caso al navegador (es-EC, es-MX, es-419... todos "es").
+  function idiomaInicial(){
+    let elegido = '';
+    try { elegido = localStorage.getItem('gg_lang') || ''; } catch(e){}
+    if (elegido === 'es' || elegido === 'en') return elegido;
+    try {
+      const nav = (navigator.languages && navigator.languages.length)
+        ? navigator.languages[0] : navigator.language;
+      return String(nav || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+    } catch(e){ return 'en'; }
+  }
 
   document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
     const el = $(c.dataset.target);
@@ -1686,7 +1798,9 @@
     sepNuevo.classList.toggle('hidden', !hayPlan || !formAbierto);
     // encabezado cambia según haya plan o no
     if (hayPlan && !formAbierto){
-      $('eyebrow').textContent = t('js.saved');
+      // Decir la verdad sobre dónde está el plan: "en este dispositivo" asusta
+      // (y con razón) cuando es cierto, pero es mentira si ya está en la cuenta.
+      $('eyebrow').textContent = nubeActiva ? t('js.savedCloud') : t('js.saved');
       $('titulo').textContent = t('js.myPlan');
       $('subtitulo').textContent = t('js.myPlanSub');
     } else {
@@ -2001,9 +2115,13 @@
   };
 
   /* ================= ARRANQUE ================= */
-  let l0 = 'en';
-  try { l0 = localStorage.getItem('gg_lang') || 'en'; } catch(e){}
-  setLang(l0 === 'es' ? 'es' : 'en');
+  // 🌐 IDIOMA DE ARRANQUE
+  // Antes la app SIEMPRE abría en inglés. Alguien en Ecuador entraba, veía todo
+  // en un idioma que no es el suyo, y el plan que generaba salía en inglés
+  // también (porque el plan se pide en el idioma que está viendo la app).
+  // Ahora, la PRIMERA vez, se mira el idioma del navegador. Si la persona ya
+  // eligió idioma alguna vez, su elección manda siempre.
+  setLang(idiomaInicial());
 
   let sb;
   try {
@@ -2019,6 +2137,8 @@
         userEmail = s.user.email;
         userId = s.user.id || '';
         cargarMemoria('account:' + userId);
+        // Trae lo que haya en la cuenta y lo junta con lo de este teléfono.
+        await sincronizarNube(userId);
       }
     } catch(e){}
   }
@@ -2034,6 +2154,11 @@
         if (!s) cuentaPro = false;
         pintarCuenta();
         if (cambioScope) pintarTodo();
+        // Al entrar: junta cuenta y teléfono. Al salir: se apaga la nube para
+        // que lo que haga un invitado en este navegador NO suba a la cuenta
+        // de quien acaba de cerrar sesión.
+        if (s && s.user && userId) { if (cambioScope) sincronizarNube(userId); }
+        else { nubeActiva = false; nubeUserId = ''; clearTimeout(nubeTimer); }
       });
     } catch(e){}
   }
@@ -2053,6 +2178,15 @@
     if (comidas && comidas.hoy) comidasHoy = comidas.hoy;
   }
   pintarTodo();
+
+  // 🧪 Puerta para las pruebas. En un navegador de verdad `window.__ggTest` no
+  // existe y esta línea no hace absolutamente nada. En pruebas/nube-arranque.test.js
+  // sí existe, y es lo que permite comprobar que al marcar un ejercicio el cambio
+  // SUBE de verdad. Sin esta puerta ese cable se podía cortar sin que ninguna
+  // prueba se enterara — y los cambios del día dejarían de guardarse en silencio.
+  if (typeof window !== 'undefined' && window.__ggTest) {
+    window.__ggTest({ guardar, paqueteLocal, subirNube, K_PLAN, K_PROG, K_PESO });
+  }
 </script>
 <script>
   /* Enciende el ayudante que hace que GymGenio se pueda instalar como app. */
