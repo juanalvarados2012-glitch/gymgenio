@@ -1,0 +1,138 @@
+// 🏋️ PRUEBAS DE LA BIBLIOTECA DE TÉCNICA
+//
+// Qué cuidan:
+//  1. Que el ejercicio que el genio inventó ENCUENTRE su ficha. Si la búsqueda
+//     falla, la app le pide al genio una ficha que ya teníamos escrita: paga
+//     una llamada de IA por algo gratis, y encima tarda.
+//  2. Que "plancha lateral" no caiga en la ficha de "plancha". Son ejercicios
+//     distintos y decirle a alguien la técnica equivocada es peor que no decirle
+//     nada.
+//  3. Que ninguna ficha se salte el límite de salud: técnica, nunca diagnóstico.
+//
+// Cada prueba se comprobó rompiendo tecnica.js a propósito.
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { buscarFicha, normalizarNombre, fichaEnVoz, CUANTAS_FICHAS } from '../tecnica.js';
+
+// ─────────────────────────────────────────────────────────────
+// Encontrar la ficha aunque el nombre venga de mil maneras
+// ─────────────────────────────────────────────────────────────
+
+test('el mismo ejercicio escrito de varias formas cae en la misma ficha', () => {
+  const formas = ['Sentadilla', 'Sentadillas', 'sentadillas', 'SENTADILLAS', 'Sentadilla con peso corporal'];
+  for (const f of formas) {
+    const ficha = buscarFicha(f, 'es');
+    assert.ok(ficha, 'no encontró: ' + f);
+    assert.equal(ficha.nombre, 'Sentadilla', 'cayó en otra ficha: ' + f);
+  }
+});
+
+test('los acentos no rompen la búsqueda', () => {
+  assert.ok(buscarFicha('Flexión de brazos', 'es'), 'no encontró "Flexión"');
+  assert.ok(buscarFicha('Elevación de talones', 'es'), 'no encontró "Elevación"');
+  assert.equal(normalizarNombre('Flexión'), 'flexion');
+});
+
+test('en inglés también encuentra', () => {
+  assert.equal(buscarFicha('Squats', 'en').nombre, 'Squat');
+  assert.equal(buscarFicha('Push-ups', 'en').nombre, 'Push-ups');
+  assert.equal(buscarFicha('Plank', 'en').nombre, 'Plank');
+});
+
+test('una variante encuentra su ejercicio base', () => {
+  // El genio escribe cosas como "Sentadilla con salto" o "Zancadas alternas".
+  assert.equal(buscarFicha('Sentadilla con salto', 'es').nombre, 'Sentadilla');
+  assert.equal(buscarFicha('Zancadas alternas', 'es').nombre, 'Zancadas');
+});
+
+test('🔒 "plancha lateral" NO cae en la ficha de "plancha"', () => {
+  // Son ejercicios distintos. Dar la técnica equivocada es peor que no dar nada.
+  assert.equal(buscarFicha('Plancha lateral', 'es').nombre, 'Plancha lateral');
+  assert.equal(buscarFicha('Plancha', 'es').nombre, 'Plancha');
+  assert.equal(buscarFicha('Side plank', 'en').nombre, 'Side plank');
+});
+
+test('lo que no está en la biblioteca devuelve null, no una ficha al azar', () => {
+  // Devolver null es lo correcto: la app se la pide al genio. Devolver una ficha
+  // parecida sería explicarle a alguien un ejercicio que no está haciendo.
+  assert.equal(buscarFicha('Nado sincronizado', 'es'), null);
+  assert.equal(buscarFicha('', 'es'), null);
+  assert.equal(buscarFicha(null, 'es'), null);
+  assert.equal(buscarFicha('   ', 'es'), null);
+});
+
+// ─────────────────────────────────────────────────────────────
+// Que las fichas estén completas y digan lo que deben decir
+// ─────────────────────────────────────────────────────────────
+
+test('todas las fichas están completas en los dos idiomas', () => {
+  const nombres = ['Sentadilla', 'Flexiones', 'Plancha', 'Puente de glúteo', 'Zancadas',
+                   'Remo', 'Press de hombro', 'Curl de bíceps', 'Abdominales', 'Escaladores',
+                   'Saltos de tijera', 'Burpees', 'Peso muerto', 'Superman',
+                   'Sentadilla búlgara', 'Fondos de tríceps', 'Plancha lateral',
+                   'Elevaciones laterales', 'Elevación de talones', 'Bird dog',
+                   'Dominadas', 'Giro ruso'];
+  assert.equal(nombres.length, CUANTAS_FICHAS, 'la lista de la prueba no cubre todas las fichas');
+
+  for (const n of nombres) {
+    for (const idioma of ['es', 'en']) {
+      const f = buscarFicha(n, idioma);
+      assert.ok(f, 'sin ficha (' + idioma + '): ' + n);
+      assert.ok(f.nombre, 'sin nombre: ' + n + ' / ' + idioma);
+      assert.ok(f.pasos.length >= 3, 'pocos pasos: ' + n + ' / ' + idioma);
+      assert.equal(f.errores.length, 3, 'deben ser exactamente 3 errores: ' + n + ' / ' + idioma);
+      assert.ok(f.sientes, 'sin "dónde lo sientes": ' + n + ' / ' + idioma);
+      assert.ok(f.facil, 'sin versión fácil: ' + n + ' / ' + idioma);
+    }
+  }
+});
+
+test('🔒 ninguna ficha diagnostica ni receta nada', () => {
+  // El genio comenta técnica. Nunca dice qué lesión tienes ni cómo tratarla.
+  // Si alguien mete una palabra de estas en una ficha nueva, esta prueba lo para.
+  const prohibidas = /\b(lesion|lesión|lesionado|tendinitis|hernia|desgarro|esguince|artrosis|diagnos|receta|medicamento|antiinflamatorio|injury|injured|tendinitis|herniat|sprain|diagnos|prescri|medication|painkiller)\w*/i;
+  const nombres = ['Sentadilla', 'Flexiones', 'Plancha', 'Puente de glúteo', 'Zancadas',
+                   'Remo', 'Press de hombro', 'Curl de bíceps', 'Abdominales', 'Escaladores',
+                   'Saltos de tijera', 'Burpees', 'Peso muerto', 'Superman',
+                   'Sentadilla búlgara', 'Fondos de tríceps', 'Plancha lateral',
+                   'Elevaciones laterales', 'Elevación de talones', 'Bird dog',
+                   'Dominadas', 'Giro ruso'];
+
+  for (const n of nombres) {
+    for (const idioma of ['es', 'en']) {
+      const f = buscarFicha(n, idioma);
+      const todo = [f.nombre, f.sientes, f.facil, ...f.pasos, ...f.errores].join(' ');
+      const m = todo.match(prohibidas);
+      assert.equal(m, null, 'la ficha "' + n + '" (' + idioma + ') usa "' + (m && m[0]) + '"');
+    }
+  }
+});
+
+test('cada ficha dice dónde NO se debe sentir, no solo dónde sí', () => {
+  // "Lo siento en la espalda baja" es la señal más útil de que algo va mal.
+  // Al menos las fichas de riesgo de espalda tienen que avisar.
+  for (const n of ['Sentadilla', 'Peso muerto', 'Plancha', 'Puente de glúteo']) {
+    const f = buscarFicha(n, 'es');
+    assert.match(f.sientes, /no |nunca /i, 'la ficha de ' + n + ' no dice dónde NO sentirlo');
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// La voz
+// ─────────────────────────────────────────────────────────────
+
+test('el texto para la voz incluye pasos y errores, y no lleva etiquetas', () => {
+  const f = buscarFicha('Sentadilla', 'es');
+  const texto = fichaEnVoz(f, 'es');
+
+  assert.ok(texto.includes(f.pasos[0]), 'no incluye el primer paso');
+  assert.ok(texto.includes(f.errores[0]), 'no incluye el primer error');
+  assert.ok(texto.includes('Errores comunes'), 'no anuncia los errores');
+  assert.equal(/[<>]/.test(texto), false, 'se coló HTML en lo que se lee en voz alta');
+});
+
+test('el texto para la voz cambia de idioma', () => {
+  assert.ok(fichaEnVoz(buscarFicha('Squat', 'en'), 'en').includes('Common mistakes'));
+  assert.equal(fichaEnVoz(null, 'es'), '');
+});

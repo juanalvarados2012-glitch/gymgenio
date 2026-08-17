@@ -5,14 +5,22 @@
 // Así nunca le muestra a nadie una versión vieja de tu app.
 
 // Al subir cambios de imágenes o diseño, sube este número: limpia lo guardado.
-const CACHE = 'gymgenio-v8';
+const CACHE = 'gymgenio-v11';
 
 // Lo mínimo para que la app abra aunque no haya señal.
+//
+// ⚠️ nube.js es OBLIGATORIO aquí. app.html lo importa como módulo: si no está
+// guardado y no hay señal, el import falla y NO se ejecuta nada del resto de la
+// app — pantalla en blanco. Cualquier archivo que app.html importe va en esta
+// lista, sin excepción.
 const BASICS = [
   '/',
   '/index.html',
   '/app.html',
   '/login.html',
+  '/nube.js',
+  '/tecnica.js',
+  '/video.js',
   '/pixel.js',
   '/icon-192.png',
   '/icon-512.png',

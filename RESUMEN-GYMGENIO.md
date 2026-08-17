@@ -26,7 +26,45 @@ que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
 - **Cuentas** (registro + login con Supabase) ✅
 - **Cuentas conectadas al pago** ✅ → entrar con tu cuenta = ver tu Pro
   (la app le pregunta a Stripe si tu email tiene suscripción activa)
+- **☁️ Tu progreso vive en tu cuenta, no solo en el teléfono** ✅ → ver abajo
+- **La app abre en tu idioma** ✅ (antes siempre abría en inglés)
+- **🏋️ Enseña la técnica de cada ejercicio** ✅ (con voz) → ver abajo
+- **📝 Check-in de 10 segundos** al terminar, y el plan cambia por eso ✅
+- **🎥 Revisión de técnica por video** (Pro) ✅
 - **Se despliega solo** (Claude sube los cambios a Vercel directo) ✅
+
+## ☁️ El progreso ya no se pierde (lo nuevo)
+
+Antes el plan, las marcas, la racha y los pesos vivían **solo dentro del navegador**.
+Perder el teléfono en la semana 6 de la ruta era perder las seis semanas. Vendemos un
+plan de 8 semanas: el guardado tiene que aguantar 8 semanas.
+
+Ahora, si la persona tiene cuenta, todo eso también vive en su cuenta y aparece en
+cualquier dispositivo donde entre.
+
+**Lo difícil no era subirlo, era qué hacer cuando el teléfono y el servidor no dicen
+lo mismo** (pasa siempre: entrenas en el gimnasio sin señal y en la casa abres otra
+pantalla). La regla fácil — "gana el último que escribió" — **borra entrenos**. Por eso
+hay dos reglas distintas, en `nube.js`:
+
+- **Lo que se reemplaza** (el plan, la meta): gana el más reciente. Solo puede haber un
+  plan a la vez.
+- **Lo que solo crece** (sesiones hechas, pesos anotados): se juntan los dos. Un entreno
+  que pasó, pasó; ningún dispositivo tiene derecho a borrarlo.
+- **Las marcas de ejercicios** solo se juntan si los dos hablan del *mismo* plan. Si no,
+  el plan nuevo aparecería con ejercicios marcados que la persona nunca hizo.
+
+**Seguros que tiene:**
+- Si la tabla del servidor todavía no existe, **la nube se apaga sola** y la app funciona
+  exactamente como antes. Nada se rompe. (Falta correr `SETUP-NUBE-PAPA.md`.)
+- Sin internet todo sigue guardándose en el teléfono y sube cuando vuelve la señal.
+- Un dispositivo recién estrenado **nunca** borra lo que hay en la cuenta.
+- Al cerrar sesión la nube se apaga: lo que haga un invitado no sube a la cuenta de nadie.
+
+**El idioma.** La app siempre abría en inglés, para todo el mundo. Alguien en Ecuador
+entraba y veía la página en un idioma que no es el suyo, y el plan que generaba salía
+en inglés también. Ahora la primera vez se mira el idioma del navegador; si la persona
+elige idioma alguna vez, su elección manda siempre.
 
 ## 🗺️ La ruta a la meta (lo nuevo)
 
@@ -63,6 +101,44 @@ El **foco que escribe el genio para cada semana** es de Pro: gratis ve 2 semanas
 4. Si cancela, deja de ser Pro automáticamente 🔄
 
 ---
+
+## 🏋️ Que enseñe, escuche y vea (lo nuevo)
+
+Los dos análisis de competencia dijeron lo mismo por caminos distintos: **el
+principiante no sabe si está haciendo bien el movimiento**, y esa duda es la
+razón número uno por la que alguien abandona en la primera sesión.
+
+**1. La ficha de técnica.** Cada ejercicio tiene ahora un botón *Cómo*: pasos,
+los 3 errores más comunes, dónde lo debes sentir (y dónde NO), y una versión más
+fácil. **22 movimientos** están escritos a mano en `tecnica.js` — gratis, al
+instante y sin internet. Lo que no esté ahí se le pide al genio **una sola vez**
+(`api/tecnica.js`, con Haiku) y se guarda en el teléfono para siempre.
+
+**2. La voz.** Un botón lee la ficha en voz alta usando la voz que ya trae el
+teléfono. No cuesta nada, no necesita servidor y funciona sin señal.
+
+**3. El check-in de 10 segundos.** Al terminar una sesión pregunta tres cosas:
+cuánto costó (1–5), qué ejercicio costó más y cuántos minutos tuviste de verdad.
+Antes, *Adaptar mi plan* adaptaba a ciegas: solo sabía CUÁNTOS entrenos hiciste.
+Ahora sabe QUÉ te costó.
+
+**4. La tarjeta "tu plan cambió por ti".** Cuando el plan se adapta, arriba
+aparece: *lo que nos dijiste → lo que cambiamos → por qué*. Sin esto, adaptar se
+ve exactamente igual que generar un plan nuevo y la persona no percibe que la app
+aprendió de ella — y esa percepción es lo que sostiene que siga pagando.
+
+**5. La revisión por video (Pro).** Te grabas 10 segundos. El **teléfono** saca 6
+fotos, las achica a 768 px y manda solo esas fotos. El genio dice qué haces bien
+y qué corregir. Cuesta **≈ 1.8 ¢** por revisión.
+
+> 🔒 **El límite de salud, en tres sitios a la vez:** en la pantalla, en el prompt
+> del servidor y en las pruebas. El genio comenta **técnica, nunca diagnostica**.
+> Si algo duele, la respuesta es un médico. El aviso viaja pegado a cada respuesta
+> del servidor para que no se pueda olvidar de dibujarlo.
+>
+> 🔒 **El video nunca se guarda.** Ni el video ni las fotos. Se miran, se contesta
+> y se botan — y se dice en la misma pantalla donde se graba, no escondido en la
+> política de privacidad.
 
 ## 🛠️ Repaso de calidad (agosto 2026)
 
@@ -102,8 +178,9 @@ viene dentro de Node):
 npm test
 ```
 
-**41 pruebas.** Cubren las cuatro cosas que, si se rompen, no te enteras por un
-error en pantalla sino por la factura o por alguien saliendo lastimado:
+**93 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
+error en pantalla sino por la factura, por alguien saliendo lastimado, o porque
+un día la racha de alguien aparece más corta y esa persona cree que se equivocó ella:
 
 | Archivo | Qué cuida |
 |---|---|
@@ -111,6 +188,10 @@ error en pantalla sino por la factura o por alguien saliendo lastimado:
 | `pruebas/frenos.test.js` | Que un robot no te vacíe el presupuesto de IA |
 | `pruebas/fechas.test.js` | Que la racha use el reloj de la persona, no el de Europa |
 | `pruebas/ruta-segura.test.js` | Que la app **nunca** prometa "10 kg en 2 semanas" |
+| `pruebas/nube.test.js` | Que sincronizar **nunca borre** entrenos ni pesos |
+| `pruebas/nube-arranque.test.js` | Que el cable esté puesto: carga `app.html` de verdad y comprueba que el progreso baja, sube, y que sin la tabla creada nada se rompe. También que el service worker guarde todos los módulos: si falta uno, sin señal la app sale en blanco |
+| `pruebas/tecnica.test.js` | Que el ejercicio encuentre su ficha (y que "plancha lateral" NO caiga en "plancha"), y que **ninguna ficha diagnostique nada** |
+| `pruebas/video.test.js` | Que los cuadros del video **siempre se achiquen** antes de mandarlos: si deja de pasar, la app se ve igual y el único aviso llega en el recibo |
 
 > Cada prueba se comprobó rompiendo el código a propósito para ver que sí falla.
 > Una prueba que no sabe fallar no está cuidando nada.
@@ -118,6 +199,24 @@ error en pantalla sino por la factura o por alguien saliendo lastimado:
 **Si `npm test` falla, NO subas ese cambio.** Algo que ya funcionaba se rompió.
 
 ## 🔧 Lo que falta
+
+### ⚠️ Primero que nada: encender la nube
+- **Papá tiene que correr el SQL de `SETUP-NUBE-PAPA.md`** (5 minutos, una sola vez).
+  Mientras no lo haga, la app funciona igual que antes pero el progreso sigue viviendo
+  solo en el teléfono. **No corre prisa y no rompe nada**, pero hasta que se haga, la
+  promesa del plan de 8 semanas sigue sin estar respaldada.
+- Cuando esté hecho: entrar con la misma cuenta desde dos navegadores distintos y ver
+  que el plan aparece en los dos. Esa es la prueba de que quedó bien.
+
+### Probar en el teléfono de verdad
+- **La voz** en un iPhone: la primera vez hay que tocar algo antes de que hable.
+- **La revisión por video** grabando de verdad, no subiendo un archivo.
+- **El check-in** al terminar un día.
+
+### Marketing (lo que de verdad falta)
+- Grabar el Reel de lanzamiento. **Ninguna función de arriba trae al primer
+  cliente**: hacen que el que llegue se quede y pague. Traerlos sigue siendo el
+  Reel y los $50 de anuncios.
 
 ### Marketing — traer los primeros clientes
 - Grabar el **Reel de lanzamiento** en Instagram (guion ya listo:
