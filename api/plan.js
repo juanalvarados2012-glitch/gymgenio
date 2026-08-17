@@ -148,8 +148,25 @@ function normalizarPlan(plan, esPro, diasSolicitados, es, semanasRuta) {
       .filter(c => c.momento && c.sugerencia) : [],
     consejos: Array.isArray(plan.consejos) ? plan.consejos.slice(0, 8)
       .map(c => textoSeguro(c, 250)).filter(Boolean) : [],
-    nota: textoSeguro(plan.nota, 500)
+    nota: textoSeguro(plan.nota, 500),
+    // 🔄 QUÉ CAMBIÓ Y POR QUÉ.
+    // Sin esto, adaptar el plan se ve igual que generar uno nuevo: la persona
+    // no percibe que la app aprendió de ella, y esa percepción es justo lo que
+    // sostiene una suscripción. Solo viene con sentido cuando hubo progreso que
+    // contar; si el genio no lo manda, se queda vacío y la app no dibuja nada.
+    ajuste: ajusteSeguro(plan.ajuste)
   };
+}
+
+function ajusteSeguro(a) {
+  if (!a || typeof a !== 'object') return null;
+  const salida = {
+    dijiste: textoSeguro(a.dijiste, 220),
+    cambiamos: textoSeguro(a.cambiamos, 220),
+    porque: textoSeguro(a.porque, 220)
+  };
+  // Media tarjeta no sirve: o se explica el cambio entero o no se enseña.
+  return (salida.dijiste && salida.cambiamos) ? salida : null;
 }
 
 export default async function handler(req, res) {
@@ -179,7 +196,7 @@ export default async function handler(req, res) {
   const equipo = textoSeguro(cuerpo.equipo, 90);
   const restricciones = textoSeguro(cuerpo.restricciones, 200);
   const ajuste = textoSeguro(cuerpo.ajuste, 200);
-  const progreso = textoSeguro(cuerpo.progreso, 400);
+  const progreso = textoSeguro(cuerpo.progreso, 700);   // 700: ahora incluye los check-ins
   const edad = numeroOpcional(cuerpo.edad, 12, 99, true);
   const peso = numeroOpcional(cuerpo.peso, 30, 250, false);
   const estatura = numeroOpcional(cuerpo.estatura, 100, 240, false);
@@ -337,8 +354,18 @@ Responde ÚNICAMENTE con un JSON válido (sin texto antes ni después, sin bloqu
     { "momento": "Desayuno", "sugerencia": "string" }
   ],
   "consejos": ["consejo 1", "consejo 2", "consejo 3"],
-  "nota": "string o vacío"
-}`;
+  "nota": "string o vacío",
+  "ajuste": { "dijiste": "string", "cambiamos": "string", "porque": "string" }
+}
+
+Sobre "ajuste": SOLO lo rellenas si arriba te dieron datos de cómo le ha ido.
+Es lo que la persona va a leer para entender que el plan cambió POR ELLA:
+- "dijiste": lo que dicen sus datos, en su voz y en una frase ("hiciste 6 de 9
+  entrenos y los burpees te costaron").
+- "cambiamos": qué cambiaste tú en este plan, concreto ("bajé a 3 series y quité
+  los burpees del día 2").
+- "porque": por qué ayuda eso, en una frase corta y amable.
+Si NO te dieron datos de progreso, devuelve "ajuste": null. Nunca te lo inventes.`;
   } else {
     const alcance = esPro
       ? `Generate the COMPLETE plan: ${dias} training days plus a one-day meal plan (breakfast, lunch, dinner and 1 snack), with portions that match their data.`
@@ -398,8 +425,18 @@ Reply with ONLY a valid JSON object (no text before or after, no code fences) wi
     { "momento": "Breakfast", "sugerencia": "string" }
   ],
   "consejos": ["tip 1", "tip 2", "tip 3"],
-  "nota": "string or empty"
-}`;
+  "nota": "string or empty",
+  "ajuste": { "dijiste": "string", "cambiamos": "string", "porque": "string" }
+}
+
+About "ajuste": ONLY fill it if you were given data above about how it has gone.
+This is what the person reads to understand the plan changed BECAUSE OF THEM:
+- "dijiste": what their data says, in their voice, in one sentence ("you did 6 of
+  9 workouts and burpees were hard for you").
+- "cambiamos": what YOU changed in this plan, concretely ("dropped to 3 sets and
+  removed burpees from day 2").
+- "porque": why that helps, in one short kind sentence.
+If you were NOT given progress data, return "ajuste": null. Never invent it.`;
   }
 
   // 💰 Gratis intenta NVIDIA (Llama 3.3, sin costo). Si NVIDIA no contesta,

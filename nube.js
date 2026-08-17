@@ -28,6 +28,26 @@ export const VERSION_NUBE = 1;
 const esObj = v => v && typeof v === 'object' && !Array.isArray(v);
 const esFecha = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
+/* Un check-in: lo que la persona contó al terminar una sesión.
+ *   f        fecha       dia      número del día del plan
+ *   esfuerzo 1 a 5       dificil  nombre del ejercicio que costó
+ *   minutos  cuánto duró de verdad */
+const esCheckin = v => esObj(v) && esFecha(v.f) && Number.isFinite(Number(v.dia));
+function limpiarCheckin(c) {
+  const entero = (v, min, max) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) && n >= min && n <= max ? n : null;
+  };
+  const salida = { f: c.f, dia: entero(c.dia, 0, 60) };
+  const esf = entero(c.esfuerzo, 1, 5);
+  if (esf !== null) salida.esfuerzo = esf;
+  const min = entero(c.minutos, 1, 600);
+  if (min !== null) salida.minutos = min;
+  if (typeof c.dificil === 'string' && c.dificil.trim()) salida.dificil = c.dificil.trim().slice(0, 80);
+  return salida;
+}
+const claveCheckin = c => c.f + '#' + c.dia;
+
 /* Deja un paquete con la forma correcta, venga de donde venga.
  * Los datos del servidor llegan por internet: nunca se confía en su forma. */
 export function normalizar(x) {
@@ -43,7 +63,9 @@ export function normalizar(x) {
     prog: {
       ej: esObj(prog.ej) ? prog.ej : {},
       dias: esObj(prog.dias) ? prog.dias : {},
-      sesiones: Array.isArray(prog.sesiones) ? prog.sesiones.filter(esFecha) : []
+      sesiones: Array.isArray(prog.sesiones) ? prog.sesiones.filter(esFecha) : [],
+      // Lo que la persona contó al terminar cada sesión. Es historia: solo crece.
+      checkins: Array.isArray(prog.checkins) ? prog.checkins.filter(esCheckin).map(limpiarCheckin) : []
     },
     pesos: Array.isArray(p.pesos)
       ? p.pesos.filter(w => esObj(w) && esFecha(w.f) && Number.isFinite(Number(w.kg)))
@@ -81,6 +103,18 @@ function unirPesos(nuevo, viejo) {
   return [...porFecha.values()].sort((x, y) => x.f < y.f ? -1 : x.f > y.f ? 1 : 0);
 }
 
+/* Junta dos listas de check-ins. Uno por día del plan y fecha: si los dos
+ * dispositivos guardaron algo del mismo día, se queda el del paquete más
+ * reciente (la persona pudo corregir lo que puso). */
+function unirCheckins(nuevo, viejo) {
+  const porClave = new Map();
+  viejo.forEach(c => porClave.set(claveCheckin(c), c));
+  nuevo.forEach(c => porClave.set(claveCheckin(c), c));
+  return [...porClave.values()].sort((a, b) =>
+    a.f < b.f ? -1 : a.f > b.f ? 1 : a.dia - b.dia
+  );
+}
+
 /* Junta las marcas de ejercicios/días de un MISMO plan.
  * Marcado gana sobre no marcado: si un dispositivo lo vio hecho, se hizo. */
 function unirMarcas(a, b) {
@@ -97,7 +131,7 @@ export function fusionar(uno, otro) {
   const b = normalizar(otro);
 
   // Paquete vacío = nunca se guardó nada. No compite: gana el que sí tiene algo.
-  const vacio = p => !p.plan && !p.meta && !p.pesos.length && !p.prog.sesiones.length;
+  const vacio = p => !p.plan && !p.meta && !p.pesos.length && !p.prog.sesiones.length && !p.prog.checkins.length;
   if (vacio(a)) return b;
   if (vacio(b)) return a;
 
@@ -117,7 +151,10 @@ export function fusionar(uno, otro) {
       ej:   juntarMarcas ? unirMarcas(nuevo.prog.ej, viejo.prog.ej)     : nuevo.prog.ej,
       dias: juntarMarcas ? unirMarcas(nuevo.prog.dias, viejo.prog.dias) : nuevo.prog.dias,
       // La racha NUNCA se pisa: un entreno que pasó, pasó, sea cual sea el plan.
-      sesiones: unirFechas(nuevo.prog.sesiones, viejo.prog.sesiones)
+      sesiones: unirFechas(nuevo.prog.sesiones, viejo.prog.sesiones),
+      // Los check-ins tampoco: es lo que la persona contó, y es la materia prima
+      // con la que el genio adapta el plan. Perderlos sería perder la memoria.
+      checkins: unirCheckins(nuevo.prog.checkins, viejo.prog.checkins)
     },
     // El peso tampoco: es historia del cuerpo, no del plan.
     pesos: unirPesos(nuevo.pesos, viejo.pesos)
@@ -127,5 +164,5 @@ export function fusionar(uno, otro) {
 /* ¿Vale la pena subir esto? Evita escribir en el servidor por nada. */
 export function hayAlgoQueGuardar(p) {
   const n = normalizar(p);
-  return !!(n.plan || n.meta || n.pesos.length || n.prog.sesiones.length);
+  return !!(n.plan || n.meta || n.pesos.length || n.prog.sesiones.length || n.prog.checkins.length);
 }

@@ -106,7 +106,66 @@
   .prog{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:16px}
   .prog span{display:block;height:100%;background:var(--acid);transition:width .25s}
 
-  .ej{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .ej{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap}
+  /* ── Ficha de técnica: cómo se hace el ejercicio ── */
+  .como{background:none;border:1px solid var(--line);color:var(--muted);border-radius:4px;cursor:pointer;
+    font:inherit;font-size:.72rem;font-weight:700;padding:5px 9px;white-space:nowrap;transition:.15s}
+  .como:hover,.como[aria-expanded="true"]{border-color:var(--acid);color:var(--acid)}
+  .tec{width:100%;margin:12px 0 2px;padding:14px 16px;background:var(--panel-2);
+    border:1px solid var(--line);border-left:3px solid var(--acid);border-radius:6px;font-size:.88rem;line-height:1.55}
+  .tec h4{font-family:var(--display);font-size:1.05rem;margin:0 0 10px;text-transform:uppercase;letter-spacing:.02em}
+  .tec ol{margin:0 0 12px;padding-left:20px;display:grid;gap:5px}
+  .tec .mal{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:5px}
+  .tec .mal li{padding-left:20px;position:relative;color:var(--muted)}
+  .tec .mal li::before{content:'✕';position:absolute;left:2px;color:#F2726F;font-weight:800}
+  .tec .rot{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    font-weight:700;display:block;margin:0 0 6px}
+  .tec .dato{margin:0 0 8px}
+  .tec .dato b{color:var(--acid)}
+  .tec-acc{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .tec-aviso{margin-top:12px;padding-top:9px;border-top:1px solid var(--line);
+    font-size:.76rem;color:var(--muted)}
+  .tec-cargando{color:var(--muted);font-size:.85rem}
+  /* ── Check-in de 10 segundos al terminar la sesión ── */
+  .chk{margin-top:16px;padding:16px;background:var(--panel-2);border:1px solid var(--line);
+    border-left:3px solid var(--acid);border-radius:6px}
+  .chk h4{font-family:var(--display);font-size:1.05rem;margin:0 0 4px;text-transform:uppercase;letter-spacing:.02em}
+  .chk .sub{color:var(--muted);font-size:.82rem;margin:0 0 14px}
+  .chk .rot{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    font-weight:700;display:block;margin:0 0 7px}
+  .chk-grupo{margin-bottom:14px}
+  .esf{display:flex;gap:7px;flex-wrap:wrap}
+  .esf button{flex:1;min-width:56px;background:transparent;border:1px solid var(--line);color:var(--text);
+    border-radius:5px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:700;padding:9px 4px;transition:.15s}
+  .esf button:hover{border-color:var(--acid)}
+  .esf button.on{background:var(--acid);border-color:var(--acid);color:#0A0A0B}
+  .chk select,.chk input{width:100%;background:var(--ink);border:1px solid var(--line);color:var(--text);
+    border-radius:5px;padding:10px;font:inherit;font-size:.88rem}
+  .chk-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  /* ── Tarjeta: qué nos dijiste, qué cambiamos y por qué ── */
+  .cambio{background:var(--panel);border:1px solid var(--acid);border-radius:8px;padding:20px;margin-bottom:20px}
+  .cambio h3{font-family:var(--display);font-size:1.25rem;margin:0 0 14px;text-transform:uppercase;letter-spacing:.02em}
+  .cambio .fila{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:start;margin-bottom:11px}
+  .cambio .ico{font-size:1rem;line-height:1.5}
+  .cambio .txt{font-size:.92rem;line-height:1.55}
+  .cambio .txt b{display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;margin-bottom:2px}
+  .cambio .cerrar{background:none;border:1px solid var(--line);color:var(--muted);border-radius:4px;
+    cursor:pointer;font:inherit;font-size:.75rem;font-weight:700;padding:6px 12px;margin-top:4px}
+  .cambio .cerrar:hover{border-color:var(--acid);color:var(--acid)}
+  /* ── Revisión de técnica por video ── */
+  .rev{margin-top:12px;padding:14px 16px;background:var(--ink);border:1px solid var(--line);border-radius:6px}
+  .rev .rot{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    font-weight:700;display:block;margin:0 0 7px}
+  .rev ul{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:6px}
+  .rev .si li{padding-left:22px;position:relative}
+  .rev .si li::before{content:'✓';position:absolute;left:2px;color:var(--done);font-weight:800}
+  .rev .no li{padding-left:22px;position:relative}
+  .rev .no li::before{content:'→';position:absolute;left:2px;color:var(--acid);font-weight:800}
+  .rev .no li em{font-style:normal;color:var(--muted);display:block;font-size:.85rem;margin-top:2px}
+  .rev .vered{margin:0 0 10px;font-weight:600}
+  .rev .aviso{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted)}
+  .rev .priv{margin:8px 0 0;font-size:.74rem;color:var(--muted)}
   .ej:last-of-type{border:none}
   .tick{flex:none;width:24px;height:24px;border:1.5px solid var(--line);border-radius:5px;background:transparent;
     cursor:pointer;display:grid;place-items:center;color:transparent;font-size:.8rem;font-weight:800;transition:.15s;margin-top:1px}
@@ -415,6 +474,7 @@
   <div id="resultado" class="hidden" aria-live="polite"></div>
 
   <!-- CAJA DE AJUSTE -->
+  <div id="cajaCambio" class="hidden"></div>
   <div id="cajaAjuste" class="ajuste hidden">
     <label data-i18n="aj.label">Want to tweak your plan?</label>
     <div class="ajuste-row">
@@ -591,6 +651,8 @@
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   import { fusionar, normalizar, hayAlgoQueGuardar } from './nube.js';
+  import { buscarFicha, fichaEnVoz, normalizarNombre } from './tecnica.js';
+  import { momentos, medidas, CALIDAD } from './video.js';
   const STRIPE_PRO = "https://buy.stripe.com/aFa5kFcuNesMb7S5Ya4Vy06";
 
   /* ================= IDIOMA ================= */
@@ -638,6 +700,21 @@
       'js.netErr':'No pude hablar con el genio. Revisa tu internet y vuelve a intentarlo.',
       'js.offlineBar':'📴 Sin internet. Puedes seguir marcando tus ejercicios: todo se guarda en tu teléfono.',
       'js.saved':'Guardado en este dispositivo','js.savedCloud':'Guardado en tu cuenta','js.confirmNew':'¿Seguro? Tu plan actual y sus marcas se borran.',
+      'js.how':'Cómo','js.hSteps':'Cómo se hace','js.hErrors':'Errores comunes','js.hFeel':'Dónde lo debes sentir',
+      'js.hEasy':'Si te cuesta','js.hListen':'🔊 Escuchar','js.hStop':'⏹ Parar','js.hLoading':'Cargando la técnica…',
+      'js.hNone':'Todavía no tengo la técnica de este ejercicio.',
+      'js.hSafe':'Esto es técnica, no un diagnóstico. Si algo te duele, para y consulta a un médico.',
+      'js.ckTitle':'¿Cómo te fue?','js.ckSub':'10 segundos. Con esto el genio ajusta tu próximo entreno.',
+      'js.ckEffort':'¿Cuánto te costó?','js.ckHard':'¿Qué ejercicio te costó más?','js.ckTime':'¿Cuántos minutos tuviste de verdad?',
+      'js.ckNone':'Ninguno en especial','js.ckSave':'Listo','js.ckSkip':'Ahora no','js.ckThanks':'Anotado. Gracias 💪',
+      'js.ck1':'Muy fácil','js.ck2':'Fácil','js.ck3':'Justo','js.ck4':'Duro','js.ck5':'Al límite',
+      'js.chTitle':'🔄 Tu plan cambió por ti','js.chYou':'Lo que nos dijiste','js.chWe':'Lo que cambiamos',
+      'js.chWhy':'Por qué','js.chOk':'Entendido',
+      'js.vCheck':'🎥 Revisar mi técnica','js.vPro':'🎥 Revisar mi técnica (Pro)','js.vReading':'Mirando tu video…',
+      'js.vGood':'Lo estás haciendo bien','js.vFix':'Para mejorar','js.vBlur':'No se ve bien',
+      'js.vErr':'No pude leer ese video. Graba unos segundos con buena luz.',
+      'js.vPriv':'Tu video no se guarda en ningún lado: se mira y se borra.',
+      'js.vAgain':'Grabar otro','js.vHint':'Grábate de lado, de cuerpo entero, 10 segundos.',
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
       'js.planOther':'Tu plan está en inglés.','js.planSwitch':'Verlo en español →',
@@ -691,6 +768,21 @@
       'js.netErr':"I couldn't reach the genie. Check your connection and try again.",
       'js.offlineBar':'📴 No connection. Keep ticking your exercises — everything saves on your phone.',
       'js.saved':'Saved on this device','js.savedCloud':'Saved to your account','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
+      'js.how':'How','js.hSteps':'How to do it','js.hErrors':'Common mistakes','js.hFeel':'Where you should feel it',
+      'js.hEasy':'If it is too hard','js.hListen':'🔊 Listen','js.hStop':'⏹ Stop','js.hLoading':'Loading technique…',
+      'js.hNone':"I don't have technique for this exercise yet.",
+      'js.hSafe':'This is technique, not a diagnosis. If something hurts, stop and see a doctor.',
+      'js.ckTitle':'How did it go?','js.ckSub':'10 seconds. This is how the genie tunes your next workout.',
+      'js.ckEffort':'How hard was it?','js.ckHard':'Which exercise was hardest?','js.ckTime':'How many minutes did you really have?',
+      'js.ckNone':'None in particular','js.ckSave':'Done','js.ckSkip':'Not now','js.ckThanks':'Noted. Thanks 💪',
+      'js.ck1':'Very easy','js.ck2':'Easy','js.ck3':'Just right','js.ck4':'Hard','js.ck5':'All out',
+      'js.chTitle':'🔄 Your plan changed because of you','js.chYou':'What you told us','js.chWe':'What we changed',
+      'js.chWhy':'Why','js.chOk':'Got it',
+      'js.vCheck':'🎥 Check my form','js.vPro':'🎥 Check my form (Pro)','js.vReading':'Looking at your video…',
+      'js.vGood':"What you're doing right",'js.vFix':'To improve','js.vBlur':"I can't see it well",
+      'js.vErr':"I couldn't read that video. Record a few seconds with good light.",
+      'js.vPriv':'Your video is never stored: it is looked at and deleted.',
+      'js.vAgain':'Record another','js.vHint':'Film yourself from the side, full body, 10 seconds.',
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
       'js.planOther':'Your plan is in Spanish.','js.planSwitch':'See it in English →',
@@ -768,7 +860,9 @@
     return {
       ej: value.ej && typeof value.ej === 'object' && !Array.isArray(value.ej) ? value.ej : {},
       dias: value.dias && typeof value.dias === 'object' && !Array.isArray(value.dias) ? value.dias : {},
-      sesiones: Array.isArray(value.sesiones) ? value.sesiones.filter(f => typeof f === 'string') : []
+      sesiones: Array.isArray(value.sesiones) ? value.sesiones.filter(f => typeof f === 'string') : [],
+      // Lo que la persona contó al terminar cada sesión (el check-in de 10 s).
+      checkins: Array.isArray(value.checkins) ? value.checkins.filter(c => c && typeof c === 'object') : []
     };
   };
   const leerPesos = () => {
@@ -816,6 +910,302 @@
 
   function limpiarBorrador(){
     try { localStorage.removeItem(scopedKey(K_DRAFT)); } catch(e){}
+  }
+
+  /* ================= TÉCNICA (cómo se hace) ================= */
+  // La duda "¿lo estoy haciendo bien?" es la razón número uno por la que alguien
+  // abandona en la primera sesión. Los movimientos comunes están escritos a mano
+  // en tecnica.js (gratis, al instante y sin señal); lo raro se le pide al genio
+  // UNA vez y se guarda en el teléfono para siempre.
+  const K_TEC = 'gg_tec';
+  const fichasEnMemoria = {};
+
+  function fichasDelTelefono(){
+    try { return JSON.parse(localStorage.getItem(K_TEC) || '{}') || {}; } catch(e){ return {}; }
+  }
+  function guardarFichaTelefono(clave, ficha){
+    try {
+      const c = fichasDelTelefono();
+      c[clave] = ficha;
+      // Tope para no llenar el almacenamiento del navegador con el tiempo.
+      const claves = Object.keys(c);
+      if (claves.length > 150) delete c[claves[0]];
+      localStorage.setItem(K_TEC, JSON.stringify(c));
+    } catch(e){}
+  }
+
+  async function obtenerFicha(nombre){
+    const clave = lang + '|' + normalizarNombre(nombre);
+    if (fichasEnMemoria[clave]) return fichasEnMemoria[clave];
+
+    // 1. La biblioteca escrita a mano. Gratis y funciona sin internet.
+    const deCasa = buscarFicha(nombre, lang);
+    if (deCasa){ fichasEnMemoria[clave] = deCasa; return deCasa; }
+
+    // 2. ¿Ya se la pedimos al genio alguna vez en este teléfono?
+    const guardadaAntes = fichasDelTelefono()[clave];
+    if (guardadaAntes){ fichasEnMemoria[clave] = guardadaAntes; return guardadaAntes; }
+
+    // 3. Solo entonces se paga una llamada.
+    const r = await pedir('/api/tecnica', {
+      method: 'POST', headers: cabeceras(),
+      body: JSON.stringify({ nombre, idioma: lang })
+    });
+    const ficha = r && r.ficha ? r.ficha : null;
+    if (ficha){ fichasEnMemoria[clave] = ficha; guardarFichaTelefono(clave, ficha); }
+    return ficha;
+  }
+
+  /* ── La voz ── */
+  // Usa la voz que ya trae el teléfono: no cuesta nada y funciona sin internet.
+  const hayVoz = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
+  function callar(){ try { if (hayVoz()) window.speechSynthesis.cancel(); } catch(e){} }
+  function hablar(texto, alTerminar){
+    if (!hayVoz() || !texto) return false;
+    try {
+      callar();
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = lang === 'es' ? 'es-ES' : 'en-US';
+      u.rate = 0.95;
+      if (alTerminar){ u.onend = alTerminar; u.onerror = alTerminar; }
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch(e){ return false; }
+  }
+  // Si la persona cambia de página o cierra, que no se quede hablando sola.
+  try { window.addEventListener('pagehide', callar); } catch(e){}
+
+  function dibujarFicha(caja, ficha, nombreEjercicio){
+    if (!ficha){ caja.innerHTML = '<p class="tec-cargando">' + t('js.hNone') + '</p>'; return; }
+    let h = '<h4>' + esc(ficha.nombre) + '</h4>';
+    if (ficha.pasos && ficha.pasos.length){
+      h += '<span class="rot">' + t('js.hSteps') + '</span><ol>';
+      ficha.pasos.forEach(p => h += '<li>' + esc(p) + '</li>');
+      h += '</ol>';
+    }
+    if (ficha.errores && ficha.errores.length){
+      h += '<span class="rot">' + t('js.hErrors') + '</span><ul class="mal">';
+      ficha.errores.forEach(e => h += '<li>' + esc(e) + '</li>');
+      h += '</ul>';
+    }
+    if (ficha.sientes) h += '<p class="dato"><b>' + t('js.hFeel') + ':</b> ' + esc(ficha.sientes) + '</p>';
+    if (ficha.facil)   h += '<p class="dato"><b>' + t('js.hEasy') + ':</b> ' + esc(ficha.facil) + '</p>';
+    h += '<div class="tec-acc">';
+    if (hayVoz()) h += '<button type="button" class="btn btn-line btn-sm" data-voz="1">' + t('js.hListen') + '</button>';
+    // 🎥 Revisar la técnica de verdad. Es Pro: mirar 6 fotos cuesta dinero.
+    h += '<button type="button" class="btn ' + (cuentaPro ? 'btn-acid' : 'btn-line') + ' btn-sm" data-video="1">' +
+         (cuentaPro ? t('js.vCheck') : t('js.vPro')) + '</button>';
+    h += '</div>';
+    h += '<div class="tec-cargando" data-revision="1" style="margin-top:10px"></div>';
+    // 🔒 El límite de salud, en pantalla y siempre visible.
+    h += '<p class="tec-aviso">' + t('js.hSafe') + '</p>';
+    caja.innerHTML = h;
+
+    const bVoz = caja.querySelector('[data-voz]');
+    if (bVoz) bVoz.onclick = () => {
+      if (bVoz.dataset.on === '1'){ callar(); bVoz.dataset.on = ''; bVoz.textContent = t('js.hListen'); return; }
+      const ok = hablar(fichaEnVoz(ficha, lang), () => { bVoz.dataset.on = ''; bVoz.textContent = t('js.hListen'); });
+      if (ok){ bVoz.dataset.on = '1'; bVoz.textContent = t('js.hStop'); }
+    };
+
+    const bVideo = caja.querySelector('[data-video]');
+    const salida = caja.querySelector('[data-revision]');
+    if (bVideo) bVideo.onclick = () => {
+      if (!cuentaPro){ cajaUpsell.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+      const entrada = document.createElement('input');
+      entrada.type = 'file';
+      entrada.accept = 'video/*';
+      entrada.setAttribute('capture', 'environment');   // en el móvil abre la cámara
+      entrada.onchange = async () => {
+        const archivo = entrada.files && entrada.files[0];
+        if (!archivo) return;
+        callar();
+        bVideo.disabled = true;
+        salida.textContent = t('js.vReading');
+        try {
+          const cuadros = await sacarCuadros(archivo);
+          const r = await pedir('/api/revision', {
+            method: 'POST', headers: cabeceras(),
+            body: JSON.stringify({ cuadros, ejercicio: nombreEjercicio || ficha.nombre, idioma: lang, sessionId })
+          });
+          if (r && r.revision) dibujarRevision(salida, r.revision);
+          else salida.textContent = t('js.vErr');
+        } catch(err){
+          salida.textContent = err.message || t('js.vErr');
+        } finally {
+          bVideo.disabled = false;
+        }
+      };
+      entrada.click();
+    };
+  }
+
+  /* ================= REVISIÓN DE TÉCNICA POR VIDEO ================= */
+  // La persona se graba 10 segundos. El TELÉFONO saca 6 fotos y manda solo esas
+  // fotos, ya achicadas. El video entero nunca sale de aquí, y las fotos no se
+  // guardan en ningún lado: se miran, se contesta y se botan.
+  //
+  // El achicado (video.js) no es un detalle: mandar los cuadros a tamaño
+  // completo multiplica varias veces lo que cuesta cada revisión sin que se vea
+  // mejor una rodilla.
+
+  const MAX_SEGUNDOS_MIRADOS = 15;   // de un video largo, solo se mira el principio
+
+  async function sacarCuadros(archivo){
+    const url = URL.createObjectURL(archivo);
+    const v = document.createElement('video');
+    v.preload = 'auto'; v.muted = true; v.playsInline = true;
+    try {
+      await new Promise((ok, mal) => {
+        v.onloadedmetadata = ok;
+        v.onerror = () => mal(new Error(t('js.vErr')));
+        setTimeout(() => mal(new Error(t('js.vErr'))), 20000);
+        v.src = url;
+      });
+
+      const tam = medidas(v.videoWidth, v.videoHeight);
+      if (!tam || !Number.isFinite(v.duration) || v.duration <= 0) throw new Error(t('js.vErr'));
+
+      const lienzo = document.createElement('canvas');
+      lienzo.width = tam.ancho; lienzo.height = tam.alto;
+      const pincel = lienzo.getContext('2d');
+
+      const cuadros = [];
+      for (const segundo of momentos(Math.min(v.duration, MAX_SEGUNDOS_MIRADOS))){
+        await new Promise(ok => {
+          let hecho = false;
+          const listo = () => { if (!hecho){ hecho = true; ok(); } };
+          v.onseeked = listo;
+          // Algunos navegadores no avisan de que llegaron: no nos quedamos
+          // esperando para siempre por un cuadro.
+          setTimeout(listo, 3000);
+          v.currentTime = segundo;
+        });
+        pincel.drawImage(v, 0, 0, tam.ancho, tam.alto);
+        cuadros.push(lienzo.toDataURL('image/jpeg', CALIDAD));
+      }
+      return cuadros;
+    } finally {
+      // Soltar la memoria del video pase lo que pase.
+      try { URL.revokeObjectURL(url); v.removeAttribute('src'); v.load(); } catch(e){}
+    }
+  }
+
+  function dibujarRevision(caja, rev){
+    let h = '<div class="rev">';
+    if (rev.veredicto) h += '<p class="vered">' + (rev.noSeVe ? '⚠️ ' : '') + esc(rev.veredicto) + '</p>';
+    if (rev.bien && rev.bien.length){
+      h += '<span class="rot">' + t('js.vGood') + '</span><ul class="si">';
+      rev.bien.forEach(b => h += '<li>' + esc(b) + '</li>');
+      h += '</ul>';
+    }
+    if (rev.corregir && rev.corregir.length){
+      h += '<span class="rot">' + t('js.vFix') + '</span><ul class="no">';
+      rev.corregir.forEach(c => h += '<li>' + esc(c.que) + (c.como ? '<em>' + esc(c.como) + '</em>' : '') + '</li>');
+      h += '</ul>';
+    }
+    // 🔒 El aviso viene del servidor pegado a cada respuesta, para que no se
+    // pueda olvidar de dibujar aquí.
+    if (rev.aviso) h += '<p class="aviso">' + esc(rev.aviso) + '</p>';
+    h += '<p class="priv">' + t('js.vPriv') + '</p>';
+    h += '</div>';
+    caja.innerHTML = h;
+  }
+
+  /* ================= CHECK-IN DE 10 SEGUNDOS ================= */
+  // El botón "Adaptar mi plan" ya existía, pero adaptaba a ciegas: solo sabía
+  // CUÁNTOS entrenos hiciste, no QUÉ te costó ni cuánto tiempo tuviste de
+  // verdad. Esto pregunta tres cosas al terminar y de ahí sale la materia prima
+  // para que el genio cambie el plan por algo concreto.
+
+  function pintarCheckin(caja, diaIndice){
+    const dia = guardado && guardado.plan && guardado.plan.dias ? guardado.plan.dias[diaIndice] : null;
+    if (!dia) return;
+    const ejercicios = (dia.ejercicios || []).map(e => e.nombre).filter(Boolean);
+
+    let h = '<div class="chk"><h4>' + t('js.ckTitle') + '</h4><p class="sub">' + t('js.ckSub') + '</p>';
+    h += '<div class="chk-grupo"><span class="rot">' + t('js.ckEffort') + '</span><div class="esf">';
+    for (let n = 1; n <= 5; n++){
+      h += '<button type="button" data-esf="' + n + '">' + n + '<br>' + t('js.ck' + n) + '</button>';
+    }
+    h += '</div></div>';
+
+    if (ejercicios.length){
+      h += '<div class="chk-grupo"><span class="rot">' + t('js.ckHard') + '</span><select id="ckDificil">' +
+           '<option value="">' + t('js.ckNone') + '</option>';
+      ejercicios.forEach(n => h += '<option value="' + esc(n) + '">' + esc(n) + '</option>');
+      h += '</select></div>';
+    }
+
+    h += '<div class="chk-grupo"><span class="rot">' + t('js.ckTime') + '</span>' +
+         '<input id="ckMin" type="number" inputmode="numeric" min="1" max="600" placeholder="' +
+         esc(String((guardado.datos && guardado.datos.minutos) || 30)) + '"></div>';
+
+    h += '<div class="chk-acc">' +
+         '<button type="button" class="btn btn-acid btn-sm" id="ckSave">' + t('js.ckSave') + '</button>' +
+         '<button type="button" class="btn btn-line btn-sm" id="ckSkip">' + t('js.ckSkip') + '</button>' +
+         '</div></div>';
+
+    caja.innerHTML = h;
+    caja.classList.remove('hidden');
+
+    let esfuerzo = 0;
+    caja.querySelectorAll('[data-esf]').forEach(b => {
+      b.onclick = () => {
+        esfuerzo = Number(b.dataset.esf);
+        caja.querySelectorAll('[data-esf]').forEach(o => o.classList.toggle('on', o === b));
+      };
+    });
+
+    const cerrar = () => { caja.innerHTML = ''; caja.classList.add('hidden'); };
+    caja.querySelector('#ckSkip').onclick = cerrar;
+    caja.querySelector('#ckSave').onclick = () => {
+      const sel = caja.querySelector('#ckDificil');
+      const min = caja.querySelector('#ckMin');
+      guardarCheckin({
+        f: hoyISO(),
+        dia: diaIndice,
+        esfuerzo: esfuerzo || undefined,
+        dificil: sel && sel.value ? sel.value : undefined,
+        minutos: min && min.value ? Number(min.value) : undefined
+      });
+      caja.innerHTML = '<div class="chk"><h4>' + t('js.ckThanks') + '</h4></div>';
+      setTimeout(cerrar, 1800);
+    };
+  }
+
+  function guardarCheckin(c){
+    prog.checkins = Array.isArray(prog.checkins) ? prog.checkins : [];
+    // Un check-in por día del plan y fecha: si vuelve a contestar, se corrige.
+    prog.checkins = prog.checkins.filter(x => !(x && x.f === c.f && Number(x.dia) === Number(c.dia)));
+    prog.checkins.push(c);
+    if (prog.checkins.length > 60) prog.checkins = prog.checkins.slice(-60);
+    guardar(K_PROG, prog);   // esto también lo sube a la cuenta
+  }
+
+  /* ── La tarjeta: qué nos dijiste, qué cambiamos y por qué ── */
+  // Sin esto, adaptar el plan se ve exactamente igual que generar uno nuevo y la
+  // persona no percibe que la app aprendió de ella. Esa percepción es lo que
+  // sostiene que alguien siga pagando el mes que viene.
+  let cambioPendiente = null;
+
+  function pintarCambio(){
+    const caja = $('cajaCambio');
+    if (!caja) return;
+    if (!cambioPendiente){ caja.classList.add('hidden'); caja.innerHTML = ''; return; }
+    const a = cambioPendiente;
+    let h = '<div class="cambio"><h3>' + t('js.chTitle') + '</h3>';
+    const fila = (ico, rot, txt) => txt
+      ? '<div class="fila"><span class="ico">' + ico + '</span><span class="txt"><b>' + rot + '</b>' + esc(txt) + '</span></div>'
+      : '';
+    h += fila('💬', t('js.chYou'), a.dijiste);
+    h += fila('🔧', t('js.chWe'), a.cambiamos);
+    h += fila('💡', t('js.chWhy'), a.porque);
+    h += '<button type="button" class="cerrar" id="chOk">' + t('js.chOk') + '</button></div>';
+    caja.innerHTML = h;
+    caja.classList.remove('hidden');
+    const ok = $('chOk');
+    if (ok) ok.onclick = () => { cambioPendiente = null; pintarCambio(); };
   }
 
   /* ================= NUBE ================= */
@@ -1331,7 +1721,50 @@
         ? `Empecé en ${meta.pesoInicial} kg, hoy estoy en ${actual} kg y la línea de esta semana marcaba ${linea} kg. Mi meta es ${meta.pesoMeta} kg en ${meta.semanas} semanas.`
         : `I started at ${meta.pesoInicial} kg, today I am at ${actual} kg and this week's line was ${linea} kg. My goal is ${meta.pesoMeta} kg in ${meta.semanas} weeks.`);
     }
-    return partes.join(' ').slice(0, 380);
+    const dijo = resumenCheckins();
+    if (dijo) partes.push(dijo);
+    return partes.join(' ').slice(0, 690);
+  }
+
+  /* Lo que la persona contó en sus últimas sesiones, en una frase.
+   *
+   * Esto es lo que convierte "otro plan más" en "un plan hecho para mí": sin
+   * esta frase el genio adapta a ciegas, mirando solo cuántos entrenos hizo.
+   * Con ella sabe QUÉ le costó y CUÁNTO tiempo tuvo de verdad. */
+  function resumenCheckins(){
+    const lista = (prog.checkins || []).slice(-4);
+    if (!lista.length) return '';
+    const es = lang === 'es';
+    const partes = [];
+
+    const esfuerzos = lista.map(c => Number(c.esfuerzo)).filter(n => Number.isFinite(n));
+    if (esfuerzos.length){
+      const media = Math.round(esfuerzos.reduce((a, b) => a + b, 0) / esfuerzos.length * 10) / 10;
+      partes.push(es
+        ? `En mis últimas ${lista.length} sesiones el esfuerzo fue ${media} de 5.`
+        : `Across my last ${lista.length} sessions effort was ${media} out of 5.`);
+    }
+
+    // El ejercicio que más veces se repitió como "el que me costó".
+    const cuenta = {};
+    lista.forEach(c => { if (c.dificil) cuenta[c.dificil] = (cuenta[c.dificil] || 0) + 1; });
+    const duro = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a])[0];
+    if (duro){
+      partes.push(es ? `El que más me costó fue "${duro}".` : `The hardest one for me was "${duro}".`);
+    }
+
+    // ¿Le está cundiendo menos tiempo del que dijo tener?
+    const minutos = lista.map(c => Number(c.minutos)).filter(n => Number.isFinite(n));
+    const previsto = Number(guardado && guardado.datos && guardado.datos.minutos);
+    if (minutos.length && Number.isFinite(previsto) && previsto > 0){
+      const media = Math.round(minutos.reduce((a, b) => a + b, 0) / minutos.length);
+      if (media < previsto * 0.8){
+        partes.push(es
+          ? `De verdad solo tengo unos ${media} min, no ${previsto}.`
+          : `I really only have about ${media} min, not ${previsto}.`);
+      }
+    }
+    return partes.join(' ');
   }
 
   /* --- fijar / cambiar la meta --- */
@@ -1676,10 +2109,13 @@
              '<div class="ej-txt' + (on ? ' tachado' : '') + '"><b>' + esc(ej.nombre) + '</b>' +
              (ej.nota ? '<em>' + esc(ej.nota) + '</em>' : '') + '</div>' +
              '<div class="ej-der"><span class="series">' + esc(ej.series || '') + '</span>' +
-             '<button type="button" class="desc" data-desc="60" aria-label="' + esc(t('js.restLabel')) + '">' + t('js.rest') + '</button></div></div>';
+             '<button type="button" class="como" data-como="' + i + '-' + j + '" data-nombre="' + esc(ej.nombre || '') + '" aria-expanded="false">' + t('js.how') + '</button>' +
+             '<button type="button" class="desc" data-desc="60" aria-label="' + esc(t('js.restLabel')) + '">' + t('js.rest') + '</button></div>' +
+             '<div class="tec hidden" id="tec-' + i + '-' + j + '"></div></div>';
       });
       h += '<button class="btn ' + (listo ? 'btn-line' : 'btn-acid') + ' btn-sm" style="margin-top:16px" data-fin="' + i + '">' +
            (listo ? t('js.undo') : t('js.finish')) + '</button>';
+      h += '<div class="hidden" id="chk-' + i + '"></div>';
       h += '</div></div>';
     });
 
@@ -1753,6 +2189,30 @@
       b.onclick = e => { e.stopPropagation(); arrancarT(parseInt(b.dataset.desc, 10)); };
     });
     // terminar día
+    // "Cómo" → abre la ficha de técnica debajo del ejercicio.
+    resultado.querySelectorAll('[data-como]').forEach(b => {
+      b.onclick = async () => {
+        const caja = $('tec-' + b.dataset.como);
+        if (!caja) return;
+        const abierto = b.getAttribute('aria-expanded') === 'true';
+        if (abierto){
+          callar();
+          caja.classList.add('hidden');
+          b.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        b.setAttribute('aria-expanded', 'true');
+        caja.classList.remove('hidden');
+        caja.innerHTML = '<p class="tec-cargando">' + t('js.hLoading') + '</p>';
+        try {
+          dibujarFicha(caja, await obtenerFicha(b.dataset.nombre), b.dataset.nombre);
+        } catch(e){
+          // Sin señal o el genio no contestó: se dice y ya, sin romper nada.
+          caja.innerHTML = '<p class="tec-cargando">' + esc(e.message || t('js.hNone')) + '</p>';
+        }
+      };
+    });
+
     resultado.querySelectorAll('[data-fin]').forEach(b => {
       b.onclick = e => {
         e.stopPropagation();
@@ -1769,7 +2229,20 @@
           (guardado.plan.dias[i].ejercicios || []).forEach((_, j) => prog.ej[i + '-' + j] = true);
         }
         guardar(K_PROG, prog);
+        // Acaba de TERMINAR el día (no de deshacerlo): se le pregunta cómo le
+        // fue, ahí mismo, antes de subir. Diez segundos, y se puede saltar.
+        const acabaDeTerminar = !!prog.dias[i];
         pintarTodo();
+        if (acabaDeTerminar){
+          const caja = $('chk-' + i);
+          const dia = caja && caja.closest ? caja.closest('.dia') : null;
+          if (dia) dia.classList.add('abierto');
+          if (caja){
+            pintarCheckin(caja, Number(i));
+            caja.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;   // no se sube al inicio: lo importante está aquí
+          }
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
     });
@@ -1849,7 +2322,7 @@
   if (!yaInstalada && /iphone|ipad|ipod/i.test(navigator.userAgent)) modoInstalar = 'ios';
 
   function pintarTodo(){
-    pintarUnidades(); pintarDash(); pintarRuta(); pintarPlan();
+    pintarUnidades(); pintarDash(); pintarRuta(); pintarCambio(); pintarPlan();
     pintarPeso(); pintarFormulario(); pintarInstalar(); pintarComida(); pintarConexion();
   }
 
@@ -1876,6 +2349,11 @@
       }
       guardado = { plan: json.plan, esPro: !!json.esPro, datos, creado: hoyISO(), lang: (datos && datos.idioma) || lang };
       guardar(K_PLAN, guardado);
+
+      // 🔄 Si el genio explicó qué cambió y por qué, se enseña arriba del plan.
+      // Solo viene cuando se le mandaron datos de progreso: en un plan recién
+      // creado no hay nada que explicar y la tarjeta no aparece.
+      cambioPendiente = (json.plan.ajuste && json.plan.ajuste.dijiste) ? json.plan.ajuste : null;
 
       // 🗺️ Si pidió una meta, el servidor devuelve las semanas REALES (estiradas
       // si el ritmo era peligroso). Si ya tenía la misma meta, NO reiniciamos su ruta.

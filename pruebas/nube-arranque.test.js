@@ -17,16 +17,47 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import * as nubeReal from '../nube.js';
+import * as tecnicaReal from '../tecnica.js';
+import * as videoReal from '../video.js';
+
+// Los módulos locales que app.html importa. Si mañana se agrega otro, se añade
+// aquí y ya: el reemplazo de abajo es genérico y no hay que tocarlo.
+const MODULOS = { './nube.js': nubeReal, './tecnica.js': tecnicaReal, './video.js': videoReal };
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const html = fs.readFileSync(path.join(RAIZ, 'app.html'), 'utf8');
 const bloque = html.match(/<script type="module">([\s\S]*?)<\/script>/);
 assert.ok(bloque, 'no se encontró el <script type="module"> de app.html');
 
-// Los dos imports del navegador se cambian por cosas que existen aquí.
+// Los imports del navegador se cambian por cosas que existen aquí.
+const importadosLocales = [];
 const CODIGO = bloque[1]
   .replace(/import\s*\{[^}]*\}\s*from\s*'https:\/\/esm\.sh[^']*';?/, 'const createClient = () => __sb;')
-  .replace(/import\s*\{([^}]*)\}\s*from\s*'\.\/nube\.js';?/, 'const {$1} = __nube;');
+  .replace(/import\s*\{([^}]*)\}\s*from\s*'(\.\/[^']+)';?/g, (_, nombres, ruta) => {
+    assert.ok(MODULOS[ruta], 'app.html importa ' + ruta + ' y esta prueba no lo conoce: agrégalo a MODULOS');
+    importadosLocales.push(ruta);
+    return `const {${nombres}} = __mods[${JSON.stringify(ruta)}];`;
+  });
+
+test('🔒 el service worker guarda TODOS los módulos que app.html importa', () => {
+  // Si falta uno, alguien sin señal abre la app, el import falla, y NO se
+  // ejecuta nada del resto: pantalla en blanco. Es peor que no tener la función.
+  // Este fallo no se ve nunca en el escritorio, solo en un móvil sin datos.
+  const sw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8');
+  const lista = sw.slice(sw.indexOf('const BASICS'), sw.indexOf(']', sw.indexOf('const BASICS')));
+  for (const ruta of importadosLocales) {
+    const archivo = ruta.replace('./', '/');
+    assert.ok(lista.includes("'" + archivo + "'"),
+      'app.html importa ' + ruta + ' pero sw.js no lo guarda: sin señal la app se queda en blanco');
+  }
+});
+
+test('la prueba conoce todos los módulos que app.html importa', () => {
+  // Si alguien agrega un import a app.html y olvida enseñárselo a esta prueba,
+  // el resto de las pruebas fallaría con un error confuso. Mejor decirlo claro.
+  assert.ok(importadosLocales.length > 0, 'no se detectó ningún import local en app.html');
+  assert.equal(/(^|\n)\s*import\s/.test(CODIGO), false, 'quedó un import sin reemplazar');
+});
 
 const USUARIO = 'usuario-de-prueba-0001';
 const CLAVE = k => k + ':account:' + USUARIO;
@@ -114,7 +145,7 @@ async function arrancar({ filaServidor = null, local = {}, tablaExiste = true, i
     addEventListener(){},
     matchMedia: () => ({ matches:false, addEventListener(){} }),
     AudioContext: function(){ return new Proxy({ currentTime:0, destination:{} }, { get:(o,p) => p in o ? o[p] : () => new Proxy({}, { get:() => () => {} }) }); },
-    __sb: sb, __nube: nubeReal
+    __sb: sb, __mods: MODULOS
   };
   // La puerta de pruebas: app.html nos pasa sus funciones internas.
   let interno = null;

@@ -198,6 +198,73 @@ test('no se sube nada si no hay nada que subir', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// Los check-ins (lo que la persona contó al terminar)
+// ─────────────────────────────────────────────────────────────
+
+test('los check-ins de dos dispositivos se juntan, no se pisan', () => {
+  // Es la memoria con la que el genio adapta el plan. Perderla es volver a
+  // adaptar a ciegas.
+  const a = { ts: 2, plan: planDe('2026-08-01'),
+    prog: { sesiones: [], checkins: [{ f: '2026-08-05', dia: 0, esfuerzo: 4 }] } };
+  const b = { ts: 1, plan: planDe('2026-08-01'),
+    prog: { sesiones: [], checkins: [{ f: '2026-08-07', dia: 1, esfuerzo: 2 }] } };
+
+  const r = fusionar(a, b);
+
+  assert.equal(r.prog.checkins.length, 2);
+  assert.deepEqual(r.prog.checkins.map(c => c.f), ['2026-08-05', '2026-08-07']);
+});
+
+test('si contesta dos veces el mismo día, se queda la respuesta más reciente', () => {
+  const viejo = { ts: 1, plan: planDe('2026-08-01'),
+    prog: { sesiones: [], checkins: [{ f: '2026-08-05', dia: 0, esfuerzo: 2 }] } };
+  const nuevo = { ts: 2, plan: planDe('2026-08-01'),
+    prog: { sesiones: [], checkins: [{ f: '2026-08-05', dia: 0, esfuerzo: 5 }] } };
+
+  assert.equal(fusionar(viejo, nuevo).prog.checkins.length, 1);
+  assert.equal(fusionar(viejo, nuevo).prog.checkins[0].esfuerzo, 5);
+  assert.equal(fusionar(nuevo, viejo).prog.checkins[0].esfuerzo, 5, 'el orden cambió el resultado');
+});
+
+test('los check-ins sobreviven al cambio de plan', () => {
+  // Cambiar de plan no borra lo que la persona contó de sus entrenos pasados.
+  const nuevoPlan = { ts: 2, plan: planDe('2026-08-20'), prog: { sesiones: [], checkins: [] } };
+  const viejoPlan = { ts: 1, plan: planDe('2026-08-01'),
+    prog: { sesiones: [], checkins: [{ f: '2026-08-05', dia: 0, esfuerzo: 3 }] } };
+
+  assert.equal(fusionar(nuevoPlan, viejoPlan).prog.checkins.length, 1);
+});
+
+test('un check-in con basura se limpia y no tumba la app', () => {
+  const r = normalizar({ prog: { checkins: [
+    { f: '2026-08-05', dia: 0, esfuerzo: 99, minutos: -5, dificil: 'x'.repeat(500) },
+    { f: 'ayer', dia: 0 },
+    { dia: 0 },
+    null,
+    { f: '2026-08-06', dia: '2', esfuerzo: '4' }
+  ] } });
+
+  assert.equal(r.prog.checkins.length, 2, 'se colaron check-ins inválidos');
+  const uno = r.prog.checkins[0];
+  assert.equal(uno.esfuerzo, undefined, 'un esfuerzo de 99 no es válido');
+  assert.equal(uno.minutos, undefined, 'unos minutos negativos no son válidos');
+  assert.equal(uno.dificil.length, 80, 'el nombre no se recortó');
+  assert.strictEqual(r.prog.checkins[1].esfuerzo, 4, 'un número en texto debe quedar como número');
+  assert.strictEqual(r.prog.checkins[1].dia, 2);
+});
+
+test('un dispositivo con solo check-ins no se considera vacío', () => {
+  // Si se considerara vacío, el otro paquete lo pisaría y se perderían.
+  assert.equal(hayAlgoQueGuardar({ prog: { checkins: [{ f: '2026-08-05', dia: 0 }] } }), true);
+  const r = fusionar(
+    { ts: 5, prog: { checkins: [{ f: '2026-08-05', dia: 0, esfuerzo: 3 }] } },
+    { ts: 9, plan: planDe('2026-08-01'), prog: { sesiones: ['2026-08-05'] } }
+  );
+  assert.equal(r.prog.checkins.length, 1, 'se perdió el check-in');
+  assert.ok(r.plan, 'se perdió el plan');
+});
+
+// ─────────────────────────────────────────────────────────────
 // Da igual quién llame primero
 // ─────────────────────────────────────────────────────────────
 

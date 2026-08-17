@@ -28,6 +28,9 @@ que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
   (la app le pregunta a Stripe si tu email tiene suscripción activa)
 - **☁️ Tu progreso vive en tu cuenta, no solo en el teléfono** ✅ → ver abajo
 - **La app abre en tu idioma** ✅ (antes siempre abría en inglés)
+- **🏋️ Enseña la técnica de cada ejercicio** ✅ (con voz) → ver abajo
+- **📝 Check-in de 10 segundos** al terminar, y el plan cambia por eso ✅
+- **🎥 Revisión de técnica por video** (Pro) ✅
 - **Se despliega solo** (Claude sube los cambios a Vercel directo) ✅
 
 ## ☁️ El progreso ya no se pierde (lo nuevo)
@@ -99,6 +102,44 @@ El **foco que escribe el genio para cada semana** es de Pro: gratis ve 2 semanas
 
 ---
 
+## 🏋️ Que enseñe, escuche y vea (lo nuevo)
+
+Los dos análisis de competencia dijeron lo mismo por caminos distintos: **el
+principiante no sabe si está haciendo bien el movimiento**, y esa duda es la
+razón número uno por la que alguien abandona en la primera sesión.
+
+**1. La ficha de técnica.** Cada ejercicio tiene ahora un botón *Cómo*: pasos,
+los 3 errores más comunes, dónde lo debes sentir (y dónde NO), y una versión más
+fácil. **22 movimientos** están escritos a mano en `tecnica.js` — gratis, al
+instante y sin internet. Lo que no esté ahí se le pide al genio **una sola vez**
+(`api/tecnica.js`, con Haiku) y se guarda en el teléfono para siempre.
+
+**2. La voz.** Un botón lee la ficha en voz alta usando la voz que ya trae el
+teléfono. No cuesta nada, no necesita servidor y funciona sin señal.
+
+**3. El check-in de 10 segundos.** Al terminar una sesión pregunta tres cosas:
+cuánto costó (1–5), qué ejercicio costó más y cuántos minutos tuviste de verdad.
+Antes, *Adaptar mi plan* adaptaba a ciegas: solo sabía CUÁNTOS entrenos hiciste.
+Ahora sabe QUÉ te costó.
+
+**4. La tarjeta "tu plan cambió por ti".** Cuando el plan se adapta, arriba
+aparece: *lo que nos dijiste → lo que cambiamos → por qué*. Sin esto, adaptar se
+ve exactamente igual que generar un plan nuevo y la persona no percibe que la app
+aprendió de ella — y esa percepción es lo que sostiene que siga pagando.
+
+**5. La revisión por video (Pro).** Te grabas 10 segundos. El **teléfono** saca 6
+fotos, las achica a 768 px y manda solo esas fotos. El genio dice qué haces bien
+y qué corregir. Cuesta **≈ 1.8 ¢** por revisión.
+
+> 🔒 **El límite de salud, en tres sitios a la vez:** en la pantalla, en el prompt
+> del servidor y en las pruebas. El genio comenta **técnica, nunca diagnostica**.
+> Si algo duele, la respuesta es un médico. El aviso viaja pegado a cada respuesta
+> del servidor para que no se pueda olvidar de dibujarlo.
+>
+> 🔒 **El video nunca se guarda.** Ni el video ni las fotos. Se miran, se contesta
+> y se botan — y se dice en la misma pantalla donde se graba, no escondido en la
+> política de privacidad.
+
 ## 🛠️ Repaso de calidad (agosto 2026)
 
 **Un agujero de seguridad que costaba dinero.** El contador de calorías (`/api/comida`)
@@ -137,7 +178,7 @@ viene dentro de Node):
 npm test
 ```
 
-**63 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
+**93 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
 error en pantalla sino por la factura, por alguien saliendo lastimado, o porque
 un día la racha de alguien aparece más corta y esa persona cree que se equivocó ella:
 
@@ -148,7 +189,9 @@ un día la racha de alguien aparece más corta y esa persona cree que se equivoc
 | `pruebas/fechas.test.js` | Que la racha use el reloj de la persona, no el de Europa |
 | `pruebas/ruta-segura.test.js` | Que la app **nunca** prometa "10 kg en 2 semanas" |
 | `pruebas/nube.test.js` | Que sincronizar **nunca borre** entrenos ni pesos |
-| `pruebas/nube-arranque.test.js` | Que el cable esté puesto: carga `app.html` de verdad y comprueba que el progreso baja, sube, y que sin la tabla creada nada se rompe |
+| `pruebas/nube-arranque.test.js` | Que el cable esté puesto: carga `app.html` de verdad y comprueba que el progreso baja, sube, y que sin la tabla creada nada se rompe. También que el service worker guarde todos los módulos: si falta uno, sin señal la app sale en blanco |
+| `pruebas/tecnica.test.js` | Que el ejercicio encuentre su ficha (y que "plancha lateral" NO caiga en "plancha"), y que **ninguna ficha diagnostique nada** |
+| `pruebas/video.test.js` | Que los cuadros del video **siempre se achiquen** antes de mandarlos: si deja de pasar, la app se ve igual y el único aviso llega en el recibo |
 
 > Cada prueba se comprobó rompiendo el código a propósito para ver que sí falla.
 > Una prueba que no sabe fallar no está cuidando nada.
@@ -165,14 +208,15 @@ un día la racha de alguien aparece más corta y esa persona cree que se equivoc
 - Cuando esté hecho: entrar con la misma cuenta desde dos navegadores distintos y ver
   que el plan aparece en los dos. Esa es la prueba de que quedó bien.
 
-### Después (el plan del núcleo)
-- **Fichas de técnica** por ejercicio + la voz del navegador leyéndolas. Es el hallazgo
-  #1 de los dos análisis: el principiante no sabe si está haciendo bien el movimiento.
-- **Check-in de 10 segundos** al terminar (esfuerzo 1–5, qué ejercicio costó) y una
-  tarjeta que diga *qué nos dijiste → qué cambiamos → por qué*. Hace visible que la IA
-  aprende, que hoy no se nota.
-- **Revisión de técnica por video** (grabar 10 s, analizar 6 fotos con el tubo que ya
-  existe en `api/comida.js`). Es el diferenciador, pero va al final.
+### Probar en el teléfono de verdad
+- **La voz** en un iPhone: la primera vez hay que tocar algo antes de que hable.
+- **La revisión por video** grabando de verdad, no subiendo un archivo.
+- **El check-in** al terminar un día.
+
+### Marketing (lo que de verdad falta)
+- Grabar el Reel de lanzamiento. **Ninguna función de arriba trae al primer
+  cliente**: hacen que el que llegue se quede y pague. Traerlos sigue siendo el
+  Reel y los $50 de anuncios.
 
 ### Marketing — traer los primeros clientes
 - Grabar el **Reel de lanzamiento** en Instagram (guion ya listo:
