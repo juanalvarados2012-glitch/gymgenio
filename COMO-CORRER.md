@@ -17,14 +17,14 @@ Tres formas, de la más rápida a la más completa. Cada una sirve para algo dis
 npm test
 ```
 
-Corre las **93 pruebas**. No necesita internet, ni llaves, ni servidor: es solo
+Corre las **128 pruebas**. No necesita internet, ni llaves, ni servidor: es solo
 Node revisando la lógica.
 
 **Qué debes ver al final:**
 
 ```
-ℹ tests 93
-ℹ pass 93
+ℹ tests 128
+ℹ pass 128
 ℹ fail 0
 ```
 

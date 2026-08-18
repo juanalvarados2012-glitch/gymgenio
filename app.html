@@ -114,6 +114,17 @@
   .tec{width:100%;margin:12px 0 2px;padding:14px 16px;background:var(--panel-2);
     border:1px solid var(--line);border-left:3px solid var(--acid);border-radius:6px;font-size:.88rem;line-height:1.55}
   .tec h4{font-family:var(--display);font-size:1.05rem;margin:0 0 10px;text-transform:uppercase;letter-spacing:.02em}
+  /* 📝 "En pocas palabras": una frase que dice QUÉ es el ejercicio, antes de
+     explicar cómo se hace. Es lo que se lee de un vistazo con el teléfono en
+     el suelo, a mitad de una serie. */
+  .tec .enpocas{margin:-4px 0 12px;font-size:.95rem;color:var(--text);
+    border-left:2px solid var(--acid);padding-left:10px}
+  /* 🖼️ Dibujo del ejercicio. Si todavía no existe, no se pinta nada: el hueco
+     se quita solo (ver `onerror` en dibujarFicha).
+     Sin `aspect-ratio`: el SVG trae la suya, y así un dibujo que aún no existe
+     ocupa cero y no deja un rectángulo vacío mientras carga. */
+  .tec .dibujo{width:100%;max-width:340px;height:auto;border-radius:6px;
+    display:block;margin:0 0 12px;background:var(--ink);border:1px solid var(--line)}
   .tec ol{margin:0 0 12px;padding-left:20px;display:grid;gap:5px}
   .tec .mal{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:5px}
   .tec .mal li{padding-left:20px;position:relative;color:var(--muted)}
@@ -652,7 +663,7 @@
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   import { fusionar, normalizar, hayAlgoQueGuardar } from './nube.js';
   import { buscarFicha, fichaEnVoz, normalizarNombre } from './tecnica.js';
-  import { momentos, medidas, CALIDAD } from './video.js';
+  import { momentos, medidas, estaNegro, CALIDAD } from './video.js';
   const STRIPE_PRO = "https://buy.stripe.com/aFa5kFcuNesMb7S5Ya4Vy06";
 
   /* ================= IDIOMA ================= */
@@ -713,11 +724,14 @@
       'js.vCheck':'🎥 Revisar mi técnica','js.vPro':'🎥 Revisar mi técnica (Pro)','js.vReading':'Mirando tu video…',
       'js.vGood':'Lo estás haciendo bien','js.vFix':'Para mejorar','js.vBlur':'No se ve bien',
       'js.vErr':'No pude leer ese video. Graba unos segundos con buena luz.',
+      'js.vBlack':'Tu video salió en negro y no pude verte. Vuelve a intentarlo: si lo grabaste desde el acceso directo de la pantalla de inicio, ábrelo mejor en Safari.',
       'js.vPriv':'Tu video no se guarda en ningún lado: se mira y se borra.',
       'js.vAgain':'Grabar otro','js.vHint':'Grábate de lado, de cuerpo entero, 10 segundos.',
       'js.day':'Día','js.exercises':'ejercicios','js.great':'¡Bien ahí! 💪',
       'js.mark':'Marcar ejercicio','js.unmark':'Desmarcar ejercicio','js.restLabel':'Iniciar descanso',
       'js.planOther':'Tu plan está en inglés.','js.planSwitch':'Verlo en español →',
+      'js.translating':'Traduciendo tu plan…',
+      'js.transErr':'No pude traducir tu plan ahora. Lo dejé como estaba.',
       /* 🗺️ ruta a la meta */
       'rt.lbl':'Tu ruta','rt.h':'Cómo vas a llegar a tu meta','rt.hHabit':'Tu ruta de constancia',
       'rt.invH':'¿A dónde quieres llegar?',
@@ -781,11 +795,14 @@
       'js.vCheck':'🎥 Check my form','js.vPro':'🎥 Check my form (Pro)','js.vReading':'Looking at your video…',
       'js.vGood':"What you're doing right",'js.vFix':'To improve','js.vBlur':"I can't see it well",
       'js.vErr':"I couldn't read that video. Record a few seconds with good light.",
+      'js.vBlack':"Your video came out black and I couldn't see you. Try again — if you recorded it from the home-screen shortcut, open the app in Safari instead.",
       'js.vPriv':'Your video is never stored: it is looked at and deleted.',
       'js.vAgain':'Record another','js.vHint':'Film yourself from the side, full body, 10 seconds.',
       'js.day':'Day','js.exercises':'exercises','js.great':'Nice work! 💪',
       'js.mark':'Mark exercise','js.unmark':'Unmark exercise','js.restLabel':'Start rest timer',
       'js.planOther':'Your plan is in Spanish.','js.planSwitch':'See it in English →',
+      'js.translating':'Translating your plan…',
+      'js.transErr':"I couldn't translate your plan right now, so I left it as it was.",
       'w.phKg':"Today's weight in kg",'w.phLb':"Today's weight in lb",
       /* 🗺️ route to the goal */
       'rt.lbl':'Your route','rt.h':'How you get to your goal','rt.hHabit':'Your consistency route',
@@ -978,6 +995,22 @@
   function dibujarFicha(caja, ficha, nombreEjercicio){
     if (!ficha){ caja.innerHTML = '<p class="tec-cargando">' + t('js.hNone') + '</p>'; return; }
     let h = '<h4>' + esc(ficha.nombre) + '</h4>';
+    // 📝 Primero QUÉ es, luego cómo se hace.
+    if (ficha.resumen) h += '<p class="enpocas">' + esc(ficha.resumen) + '</p>';
+    // 🖼️ El dibujo del ejercicio, si ya existe uno.
+    //
+    // Se pinta "a la esperanza": si el archivo todavía no está, el navegador
+    // dispara `error` y lo quitamos del todo (más abajo). Así se pueden ir
+    // añadiendo dibujos de uno en uno sin tocar ni una línea de código, y las
+    // fichas que aún no tienen el suyo se ven exactamente como antes.
+    //
+    // ⚠️ SIN loading="lazy" a propósito. Con lazy, un dibujo que queda fuera de
+    // pantalla no se pide, así que tampoco falla, así que el hueco vacío se
+    // queda ahí hasta que la persona hace scroll — y entonces desaparece de
+    // golpe y le salta el texto. La ficha entera ya se construye solo al tocar
+    // "Cómo": esa es la pereza que hacía falta.
+    if (ficha.dibujo) h += '<img class="dibujo" src="dibujos/' + esc(ficha.dibujo) + '.svg" ' +
+                           'alt="' + esc(ficha.nombre) + '" decoding="async">';
     if (ficha.pasos && ficha.pasos.length){
       h += '<span class="rot">' + t('js.hSteps') + '</span><ol>';
       ficha.pasos.forEach(p => h += '<li>' + esc(p) + '</li>');
@@ -1001,6 +1034,12 @@
     h += '<p class="tec-aviso">' + t('js.hSafe') + '</p>';
     caja.innerHTML = h;
 
+    // Si todavía no existe el archivo del dibujo, se quita el hueco. Nadie ve
+    // un icono de imagen rota, y no hace falta ir marcando en el código qué
+    // ejercicios ya tienen dibujo y cuáles no.
+    const img = caja.querySelector('.dibujo');
+    if (img) img.onerror = () => img.remove();
+
     const bVoz = caja.querySelector('[data-voz]');
     if (bVoz) bVoz.onclick = () => {
       if (bVoz.dataset.on === '1'){ callar(); bVoz.dataset.on = ''; bVoz.textContent = t('js.hListen'); return; }
@@ -1015,7 +1054,10 @@
       const entrada = document.createElement('input');
       entrada.type = 'file';
       entrada.accept = 'video/*';
-      entrada.setAttribute('capture', 'environment');   // en el móvil abre la cámara
+      // Sin `capture`: el iPhone deja ELEGIR entre grabar ahora o tomar un video
+      // que ya está en el carrete. Forzando la cámara, quien abre la app desde
+      // el acceso directo de la pantalla de inicio se quedaba sin salida cuando
+      // la grabación fallaba.
       entrada.onchange = async () => {
         const archivo = entrada.files && entrada.files[0];
         if (!archivo) return;
@@ -1051,13 +1093,73 @@
 
   const MAX_SEGUNDOS_MIRADOS = 15;   // de un video largo, solo se mira el principio
 
+  /* ⬛ POR QUÉ ESTO ES MÁS ENREDADO DE LO QUE PARECE
+   *
+   * Copiar un cuadro de un video suena a una línea de código, y en la
+   * computadora lo es. En iPhone no:
+   *
+   *   1. Un <video> que nunca se reprodujo NO tiene imagen decodificada.
+   *      Copiarlo da un rectángulo negro, sin dar ningún error. Hay que
+   *      arrancarlo (sin sonido) una vez para que Safari despierte el
+   *      decodificador.
+   *   2. Un <video> que no está en la página tampoco decodifica en algunas
+   *      versiones. Por eso se mete en el documento, escondido pero presente
+   *      (no con display:none, que lo apagaría otra vez).
+   *   3. `seeked` avisa de que el reloj del video llegó al segundo pedido,
+   *      NO de que la imagen de ese segundo ya esté pintada. Copiar justo en
+   *      ese momento da el cuadro anterior o negro.
+   *
+   * Los tres juntos son lo que hacía que la revisión saliera "no te veo, está
+   * todo negro" en un iPhone y funcionara perfecto en la computadora.
+   */
+
+  /* Espera a que el video tenga de verdad una imagen pintada, no solo el reloj
+   * en su sitio. `requestVideoFrameCallback` es la manera exacta de saberlo;
+   * donde no existe, dos vueltas de dibujo del navegador es lo más cercano. */
+  function esperarImagen(v){
+    return new Promise(ok => {
+      let hecho = false;
+      const listo = () => { if (!hecho){ hecho = true; ok(); } };
+      if (typeof v.requestVideoFrameCallback === 'function'){
+        v.requestVideoFrameCallback(listo);
+        setTimeout(listo, 600);            // por si el video está pausado y no llega
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(listo));
+        setTimeout(listo, 200);
+      }
+    });
+  }
+
+  function irASegundo(v, segundo){
+    return new Promise(ok => {
+      let hecho = false;
+      const listo = () => { if (!hecho){ hecho = true; v.onseeked = null; ok(); } };
+      v.onseeked = listo;
+      // Algunos navegadores no avisan de que llegaron: no nos quedamos
+      // esperando para siempre por un cuadro.
+      setTimeout(listo, 3000);
+      v.currentTime = segundo;
+    });
+  }
+
   async function sacarCuadros(archivo){
     const url = URL.createObjectURL(archivo);
     const v = document.createElement('video');
-    v.preload = 'auto'; v.muted = true; v.playsInline = true;
+    v.preload = 'auto';
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');        // iPhone: sin esto se va a pantalla completa
+    // Presente en la página pero invisible. `display:none` lo dejaría sin decodificar.
+    v.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+    document.body.appendChild(v);
+
     try {
+      // `loadeddata` (no `loadedmetadata`): esperamos a que haya UNA imagen,
+      // no solo a saber cuánto dura.
       await new Promise((ok, mal) => {
-        v.onloadedmetadata = ok;
+        v.onloadeddata = ok;
         v.onerror = () => mal(new Error(t('js.vErr')));
         setTimeout(() => mal(new Error(t('js.vErr'))), 20000);
         v.src = url;
@@ -1066,28 +1168,47 @@
       const tam = medidas(v.videoWidth, v.videoHeight);
       if (!tam || !Number.isFinite(v.duration) || v.duration <= 0) throw new Error(t('js.vErr'));
 
+      // Despertar el decodificador de iPhone: un arranque mudo y cortísimo.
+      // Si el navegador no deja arrancar, seguimos igual — en Android y en la
+      // computadora no hace falta.
+      try {
+        const arranque = v.play();
+        if (arranque && typeof arranque.then === 'function') await arranque;
+        await esperarImagen(v);
+        v.pause();
+      } catch(e){ /* sin permiso para arrancar: se intenta copiar igual */ }
+
       const lienzo = document.createElement('canvas');
       lienzo.width = tam.ancho; lienzo.height = tam.alto;
-      const pincel = lienzo.getContext('2d');
+      const pincel = lienzo.getContext('2d', { willReadFrequently: true });
 
       const cuadros = [];
+      let negros = 0;
       for (const segundo of momentos(Math.min(v.duration, MAX_SEGUNDOS_MIRADOS))){
-        await new Promise(ok => {
-          let hecho = false;
-          const listo = () => { if (!hecho){ hecho = true; ok(); } };
-          v.onseeked = listo;
-          // Algunos navegadores no avisan de que llegaron: no nos quedamos
-          // esperando para siempre por un cuadro.
-          setTimeout(listo, 3000);
-          v.currentTime = segundo;
-        });
+        await irASegundo(v, segundo);
+        await esperarImagen(v);
         pincel.drawImage(v, 0, 0, tam.ancho, tam.alto);
+
+        // ¿Salió negro? Segundo intento: se mueve un pelo el segundo pedido,
+        // que es lo que suele destrabar al decodificador.
+        if (estaNegro(pincel.getImageData(0, 0, tam.ancho, tam.alto).data)){
+          await irASegundo(v, Math.max(0, segundo + 0.08));
+          await esperarImagen(v);
+          pincel.drawImage(v, 0, 0, tam.ancho, tam.alto);
+          if (estaNegro(pincel.getImageData(0, 0, tam.ancho, tam.alto).data)){ negros++; continue; }
+        }
         cuadros.push(lienzo.toDataURL('image/jpeg', CALIDAD));
+      }
+
+      // 💸 Si no se rescató casi nada, NO se manda. Mandar cuadros negros
+      // cuesta dinero y solo puede devolver "no te veo".
+      if (cuadros.length < 2){
+        throw new Error(negros ? t('js.vBlack') : t('js.vErr'));
       }
       return cuadros;
     } finally {
       // Soltar la memoria del video pase lo que pase.
-      try { URL.revokeObjectURL(url); v.removeAttribute('src'); v.load(); } catch(e){}
+      try { URL.revokeObjectURL(url); v.removeAttribute('src'); v.load(); v.remove(); } catch(e){}
     }
   }
 
@@ -2137,22 +2258,42 @@
     resultado.classList.remove('hidden');
     cajaAjuste.classList.remove('hidden');
 
-    // Rehacer el plan en el idioma que está viendo la app (traduce de verdad el contenido).
+    // 🌐 Ver EL MISMO plan en el otro idioma.
+    //
+    // Antes esto rehacía el plan entero con el modelo caro: hasta 52 segundos,
+    // ejercicios distintos a los de ayer, y se borraban todas las marcas. Nadie
+    // pide "cambiar de idioma" queriendo un plan nuevo.
+    //
+    // Ahora solo se traduce el texto. El servidor comprueba que la traducción
+    // tenga exactamente la misma forma y los mismos números (api/traducir.js);
+    // si no calza, no la manda, y aquí no se toca nada.
     const swap = $('btnLangSwap');
     if (swap) swap.onclick = async () => {
-      if (!guardado) return;
-      // Plan viejo sin datos guardados: no lo podemos rehacer solos → abrimos el formulario.
-      if (!guardado.datos || !guardado.datos.objetivo){
-        formAbierto = true; pintarFormulario();
-        sepNuevo.scrollIntoView({ behavior:'smooth', block:'start' });
-        return;
-      }
+      if (!guardado || !guardado.plan) return;
+      const textoBoton = swap.innerHTML;
       swap.disabled = true;
-      swap.innerHTML = '⏳ ' + t('js.building');
-      prog.ej = {}; prog.dias = {};          // el plan cambia: se reinician las marcas de ESTE plan
-      guardar(K_PROG, prog);
-      await generar(Object.assign({}, guardado.datos, { idioma: lang }));
-      pintarPlan();                          // restaura el botón (si falló) o lo quita (si salió bien)
+      swap.innerHTML = '⏳ ' + t('js.translating');
+      try {
+        const r = await pedir('/api/traducir', {
+          method: 'POST', headers: cabeceras(),
+          body: JSON.stringify({ plan: guardado.plan, idioma: lang })
+        });
+        if (!r || !r.plan) throw new Error(t('js.transErr'));
+        // El progreso NO se toca: es el mismo plan, misma cantidad de días y de
+        // ejercicios en el mismo orden. Eso es justo lo que el servidor verificó.
+        guardado.plan = r.plan;
+        guardado.lang = lang;
+        if (guardado.datos) guardado.datos.idioma = lang;
+        guardar(K_PLAN, guardado);      // guardar() ya se encarga de subirlo a la nube
+        pintarPlan();                   // se redibuja sin el botón: ya está en su idioma
+      } catch(err){
+        // El plan se queda como estaba. Se dice por qué y se puede reintentar.
+        swap.disabled = false;
+        swap.innerHTML = textoBoton;
+        errorBox.textContent = err && err.message ? err.message : t('js.transErr');
+        errorBox.classList.remove('hidden');
+        errorBox.scrollIntoView({ behavior:'smooth', block:'center' });
+      }
     };
 
     // abrir / cerrar días

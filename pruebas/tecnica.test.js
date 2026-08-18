@@ -13,7 +13,12 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscarFicha, normalizarNombre, fichaEnVoz, CUANTAS_FICHAS } from '../tecnica.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buscarFicha, normalizarNombre, fichaEnVoz, CUANTAS_FICHAS, DIBUJOS } from '../tecnica.js';
+
+const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // ─────────────────────────────────────────────────────────────
 // Encontrar la ficha aunque el nombre venga de mil maneras
@@ -84,6 +89,9 @@ test('todas las fichas están completas en los dos idiomas', () => {
       assert.equal(f.errores.length, 3, 'deben ser exactamente 3 errores: ' + n + ' / ' + idioma);
       assert.ok(f.sientes, 'sin "dónde lo sientes": ' + n + ' / ' + idioma);
       assert.ok(f.facil, 'sin versión fácil: ' + n + ' / ' + idioma);
+      // La línea de "en pocas palabras" va en los DOS idiomas. Si falta en uno,
+      // ese idioma se ve a medias sin que nada dé error.
+      assert.ok(f.resumen, 'sin "en pocas palabras": ' + n + ' / ' + idioma);
     }
   }
 });
@@ -135,4 +143,48 @@ test('el texto para la voz incluye pasos y errores, y no lleva etiquetas', () =>
 test('el texto para la voz cambia de idioma', () => {
   assert.ok(fichaEnVoz(buscarFicha('Squat', 'en'), 'en').includes('Common mistakes'));
   assert.equal(fichaEnVoz(null, 'es'), '');
+});
+
+// ─────────────────────────────────────────────────────────────
+// Los dibujos de los ejercicios
+// ─────────────────────────────────────────────────────────────
+
+test('🔒 dos ejercicios distintos nunca comparten el mismo dibujo', () => {
+  // El nombre del archivo sale de la primera clave de la ficha. Si dos fichas
+  // acabaran con el mismo nombre, a alguien se le enseñaría el dibujo de otro
+  // ejercicio mientras lee la técnica del suyo — y todo se vería normal.
+  const repetidas = DIBUJOS.filter((f, i) => DIBUJOS.indexOf(f) !== i);
+  assert.deepEqual(repetidas, [], 'estos dibujos están repetidos: ' + repetidas.join(', '));
+  assert.equal(DIBUJOS.length, CUANTAS_FICHAS);
+});
+
+test('los nombres de archivo de los dibujos son seguros para una URL', () => {
+  // Van dentro de un src="dibujos/….svg". Un espacio o un acento ahí da un 404
+  // silencioso: el dibujo simplemente no aparece y nadie sabe por qué.
+  for (const f of DIBUJOS) {
+    assert.match(f, /^[a-z0-9-]+$/, 'nombre de dibujo no válido: "' + f + '"');
+  }
+});
+
+test('el mismo ejercicio en los dos idiomas pide el MISMO dibujo', () => {
+  // Un dibujo por movimiento, no uno por idioma.
+  for (const [es, en] of [['Sentadilla', 'Squat'], ['Flexiones', 'Push-ups'], ['Peso muerto', 'Deadlift']]) {
+    assert.equal(buscarFicha(es, 'es').dibujo, buscarFicha(en, 'en').dibujo, es + ' / ' + en);
+  }
+});
+
+test('🔒 la lista de dibujos del LEEME cuadra con la de verdad', () => {
+  // dibujos/LEEME.md es lo que se mira para saber cómo nombrar cada archivo. Si
+  // se queda vieja, se guarda un dibujo con el nombre equivocado y no aparece —
+  // sin ningún error que lo explique.
+  const leeme = fs.readFileSync(path.join(RAIZ, 'dibujos', 'LEEME.md'), 'utf8');
+  const enElLeeme = (leeme.match(/`([a-z0-9-]+)\.svg`/g) || [])
+    .map(s => s.replace(/[`]/g, '').replace('.svg', ''));
+
+  for (const f of DIBUJOS) {
+    assert.ok(enElLeeme.includes(f), 'falta "' + f + '.svg" en dibujos/LEEME.md');
+  }
+  for (const f of enElLeeme) {
+    assert.ok(DIBUJOS.includes(f), 'dibujos/LEEME.md nombra "' + f + '.svg", que ya no existe');
+  }
 });

@@ -45,6 +45,44 @@ export function momentos(duracion, cuantos = CUADROS) {
   return lista;
 }
 
+/* ⬛ ¿Este cuadro salió en negro?
+ *
+ * Por qué hace falta:
+ * En iPhone, un video que nunca se reprodujo no entrega imagen: copiarlo da un
+ * rectángulo negro. Sin esta comprobación mandábamos 6 rectángulos negros al
+ * genio, cobrábamos la revisión, y la persona recibía "no te veo". Pagar por
+ * una respuesta inútil es peor que no dar respuesta.
+ *
+ * Cómo decide:
+ * Un cuadro de verdad —aunque esté grabado en un cuarto oscuro— siempre tiene
+ * algunos píxeles con algo de luz. Uno vacío no tiene ninguno. Así que se
+ * cuentan los píxeles que pasan de casi-negro; si prácticamente no hay
+ * ninguno, el cuadro está vacío.
+ *
+ * `pixeles` viene de canvas.getImageData().data: 4 números por píxel (R,G,B,A).
+ */
+export const LUZ_MINIMA = 18;      // por debajo de esto el ojo ya no distingue nada
+export const PARTE_VIVA = 0.005;   // basta con que medio por ciento tenga luz
+
+export function estaNegro(pixeles, luzMinima = LUZ_MINIMA, parteViva = PARTE_VIVA) {
+  if (!pixeles || typeof pixeles.length !== 'number' || pixeles.length < 4) return true;
+
+  const total = Math.floor(pixeles.length / 4);
+  // No hace falta mirar los millones de píxeles: con ~5000 repartidos basta y
+  // no congela el teléfono.
+  const salto = Math.max(1, Math.floor(total / 5000));
+
+  let mirados = 0, vivos = 0;
+  for (let i = 0; i < total; i += salto) {
+    const p = i * 4;
+    const luz = Math.max(pixeles[p], pixeles[p + 1], pixeles[p + 2]);
+    mirados++;
+    if (luz > luzMinima) vivos++;
+  }
+  if (!mirados) return true;
+  return (vivos / mirados) < parteViva;
+}
+
 /* A qué tamaño guardar cada foto: el lado largo baja a `lado` como mucho, sin
  * deformar la imagen y sin agrandar un video que ya venía pequeño. */
 export function medidas(ancho, alto, lado = LADO_MAX) {

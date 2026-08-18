@@ -12,7 +12,20 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { momentos, medidas, CUADROS, LADO_MAX } from '../video.js';
+import { momentos, medidas, estaNegro, CUADROS, LADO_MAX } from '../video.js';
+
+/* Fabrica los píxeles de una foto (4 números por píxel: R,G,B,A) donde una
+ * parte `viva` de ellos tiene luz `luz` y el resto está en negro. Sirve para
+ * probar `estaNegro` sin necesitar un navegador ni un video de verdad. */
+function pixeles(cuantos, viva = 0, luz = 200) {
+  const datos = new Uint8ClampedArray(cuantos * 4);
+  const conLuz = Math.round(cuantos * viva);
+  for (let i = 0; i < cuantos; i++) {
+    const v = i < conLuz ? luz : 0;
+    datos[i * 4] = v; datos[i * 4 + 1] = v; datos[i * 4 + 2] = v; datos[i * 4 + 3] = 255;
+  }
+  return datos;
+}
 
 // ─────────────────────────────────────────────────────────────
 // Qué momentos del video se miran
@@ -101,4 +114,54 @@ test('medidas imposibles devuelven null en vez de romper el dibujo', () => {
   assert.equal(medidas(100, 0), null);
   assert.equal(medidas(NaN, 100), null);
   assert.equal(medidas(undefined, undefined), null);
+});
+
+// ─────────────────────────────────────────────────────────────
+// Cuadros en negro (el fallo que sí le pasó a una persona de verdad)
+// ─────────────────────────────────────────────────────────────
+
+test('🔒 un cuadro totalmente negro se detecta', () => {
+  // Esto es lo que pasaba en iPhone: se mandaban 6 rectángulos negros, se
+  // cobraba la revisión, y la respuesta era "no te veo". Si esto deja de
+  // detectarse, volvemos a cobrar por una respuesta inútil.
+  assert.equal(estaNegro(pixeles(10000, 0)), true);
+});
+
+test('un cuadro normal NO se confunde con uno negro', () => {
+  assert.equal(estaNegro(pixeles(10000, 0.6)), false);
+});
+
+test('una persona grabando en un cuarto con poca luz sí se ve', () => {
+  // El caso peligroso al revés: pasarse de estricto y rechazar un video bueno
+  // solo porque está oscuro. Un cuarto en penumbra sigue teniendo luz real.
+  assert.equal(estaNegro(pixeles(10000, 0.9, 45)), false,
+    'un video oscuro pero válido se rechazó como si estuviera vacío');
+});
+
+test('unos pocos píxeles perdidos no salvan a un cuadro vacío', () => {
+  // Un cuadro "casi negro" (ruido del sensor, un pixel encendido) sigue siendo
+  // inservible para revisar una sentadilla.
+  assert.equal(estaNegro(pixeles(10000, 0.001)), true);
+});
+
+test('un cuadro casi negro pero con algo visible se acepta', () => {
+  // El límite por el otro lado: si de verdad hay algo que mirar, se manda.
+  assert.equal(estaNegro(pixeles(10000, 0.05)), false);
+});
+
+test('unos píxeles vacíos o rotos cuentan como negro, no revientan', () => {
+  assert.equal(estaNegro(null), true);
+  assert.equal(estaNegro(undefined), true);
+  assert.equal(estaNegro(new Uint8ClampedArray(0)), true);
+  assert.equal(estaNegro('no son pixeles'), true);
+});
+
+test('un cuadro del tamaño real (768x576) se juzga igual de bien', () => {
+  // Para no recorrer medio millón de píxeles, `estaNegro` mira solo una parte
+  // repartida. Esa parte tiene que representar bien al cuadro entero: si el
+  // muestreo cayera siempre en la misma zona, un video bueno podría salir
+  // "negro" y uno negro podría colarse.
+  const real = 768 * 576;
+  assert.equal(estaNegro(pixeles(real, 0)), true, 'un cuadro grande y vacío se coló');
+  assert.equal(estaNegro(pixeles(real, 0.4)), false, 'un cuadro grande y bueno se rechazó');
 });
