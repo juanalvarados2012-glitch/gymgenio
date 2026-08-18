@@ -169,6 +169,19 @@ la persona** (el navegador le manda su zona al servidor).
 - La app abre más rápido: las dos preguntas al servidor salen a la vez, no en fila.
 - El botón de quitar mide 40x40 (antes 22x22: imposible atinarle con la mano sudada).
 
+## ▶️ Cómo correr esto
+
+Está explicado paso a paso en **`COMO-CORRER.md`**. El resumen:
+
+| Para qué | Comando |
+|---|---|
+| Ver si rompiste algo | `npm test` |
+| Ver la app en tu compu | `python3 -m http.server 8000` → http://localhost:8000/app.html |
+| La app de verdad | https://gymgenio.vercel.app (se publica sola con `git push`) |
+
+> ⚠️ `app.html` **no se abre con doble clic**: sale en blanco. Usa el servidor.
+> El navegador bloquea los `import` de módulos cuando el archivo viene del disco.
+
 ## 🧪 Las pruebas automáticas
 
 Se corren con **un solo comando**, sin instalar nada (usan el probador que ya
