@@ -173,6 +173,40 @@ test('el mismo ejercicio en los dos idiomas pide el MISMO dibujo', () => {
   }
 });
 
+test('🔒 todo dibujo que exista tiene que poder pintarse', () => {
+  // Un SVG mal formado NO da ningún error: el navegador simplemente no pinta
+  // nada y la app se ve como si el dibujo no existiera. Pasó de verdad —
+  // repetir un atributo (dos `stroke-width` en la misma línea) dejó 6 dibujos
+  // en blanco y no había ni un aviso en la consola. Por eso se revisan aquí.
+  const dir = path.join(RAIZ, 'dibujos');
+  const archivos = fs.readdirSync(dir).filter(f => f.endsWith('.svg'));
+  assert.ok(archivos.length, 'no hay ningún dibujo que revisar');
+
+  for (const archivo of archivos) {
+    const svg = fs.readFileSync(path.join(dir, archivo), 'utf8');
+
+    // 1. Las etiquetas abren y cierran.
+    const abre = (svg.match(/<(?!\/)(?!!)[a-zA-Z]/g) || []).length;
+    const cierra = (svg.match(/<\/[a-zA-Z]/g) || []).length + (svg.match(/\/>/g) || []).length;
+    assert.equal(abre, cierra, archivo + ': hay etiquetas sin cerrar');
+
+    // 2. Ningún atributo repetido dentro de una misma etiqueta.
+    for (const etiqueta of svg.match(/<[a-zA-Z][^>]*>/g) || []) {
+      const nombres = (etiqueta.match(/[a-zA-Z-]+\s*=/g) || []).map(a => a.replace(/\s*=$/, ''));
+      const repes = nombres.filter((a, i) => nombres.indexOf(a) !== i);
+      assert.deepEqual(repes, [], archivo + ': atributo repetido "' + repes[0] + '" (el dibujo no se pintaría)');
+    }
+
+    // 3. Lo mínimo para que la app lo pueda escalar.
+    assert.match(svg, /<svg[^>]*viewBox=/, archivo + ': sin viewBox, la app no sabe escalarlo');
+    assert.match(svg, /xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, archivo + ': sin xmlns no se pinta como imagen');
+
+    // 4. Sin texto: la app es bilingüe y una etiqueta en un idioma se vería
+    //    en la ficha del otro.
+    assert.equal(/<text[\s>]/.test(svg), false, archivo + ': lleva texto dentro, y no se puede traducir');
+  }
+});
+
 test('🔒 la lista de dibujos del LEEME cuadra con la de verdad', () => {
   // dibujos/LEEME.md es lo que se mira para saber cómo nombrar cada archivo. Si
   // se queda vieja, se guarda un dibujo con el nombre equivocado y no aparece —

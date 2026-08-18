@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 210" role="img" aria-label="Giro ruso: sentado y echado atras, girando el tronco">
+  <defs><marker id="a" markerWidth="7" markerHeight="7" refX="5.5" refY="3" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#CCFF00"/></marker></defs>
+  <line x1="14" y1="178" x2="326" y2="178" stroke="#8B8B95" stroke-width="1.5" opacity=".5"/>
+  <g stroke="#F3F3F1" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="122" cy="98" r="11" fill="#F3F3F1" stroke="none"/>
+    <line x1="127.4" y1="107.9" x2="134" y2="120"/>
+    <line x1="134" y1="120" x2="168" y2="168"/>
+    <line x1="168" y1="168" x2="212" y2="136"/>
+    <line x1="212" y1="136" x2="222" y2="176"/>
+    <line x1="222" y1="176" x2="244" y2="176" stroke-width="5"/>
+    <line x1="134" y1="120" x2="186" y2="126"/>
+  </g>
+  <circle cx="196" cy="127" r="9" fill="#F3F3F1" stroke="none"/>
+  <line x1="126" y1="104" x2="172" y2="172" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" fill="none" stroke-dasharray="5 4"/>
+  <path d="M198 156 q36 16 70 -6" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" fill="none" marker-start="url(#a)" marker-end="url(#a)"/>
+</svg>
