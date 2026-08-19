@@ -5,7 +5,7 @@
 // Así nunca le muestra a nadie una versión vieja de tu app.
 
 // Al subir cambios de imágenes o diseño, sube este número: limpia lo guardado.
-const CACHE = 'gymgenio-v13';
+const CACHE = 'gymgenio-v14';
 
 // Lo mínimo para que la app abra aunque no haya señal.
 //
