@@ -74,8 +74,14 @@
   @media(max-width:520px){.stat .big{font-size:1.9rem}.stat{padding:16px 8px}.stat .cap{font-size:.6rem;letter-spacing:.08em}}
   @media(max-width:480px){
     .plan-top{padding:20px 16px}.dia-head{padding:16px 14px;gap:9px}.dia-cuerpo{padding-left:14px;padding-right:14px}
-    .dia-estado{font-size:.62rem}.ej{gap:8px}.ej-der{flex-direction:column;align-items:flex-end;gap:4px}
-    .ej-der .series{font-size:.77rem}.desc{font-size:.68rem}.bloque{padding-left:16px;padding-right:16px}
+    .dia-estado{font-size:.62rem}.ej{gap:8px}
+    /* Antes esta columna no se podía encoger (flex:none) y su "series" nunca
+       hacía salto de línea: un ejercicio con una duración larga (p. ej.
+       "8 min total (1 min brisk, 1 min easy)" en vez de "3x12") se salía del
+       ancho de la pantalla en letras chiquitas o en texto agrandado por
+       accesibilidad. Ahora se encoge y el texto pasa a una segunda línea. */
+    .ej-der{flex-direction:column;align-items:flex-end;gap:4px;flex:0 1 auto;min-width:0;max-width:100%}
+    .ej-der .series{font-size:.77rem;white-space:normal;text-align:right}.desc{font-size:.68rem}.bloque{padding-left:16px;padding-right:16px}
   }
 
   /* ---------- PLAN ---------- */
@@ -1278,7 +1284,12 @@
       };
     });
 
-    const cerrar = () => { caja.innerHTML = ''; caja.classList.add('hidden'); };
+    const cerrar = () => {
+      caja.innerHTML = ''; caja.classList.add('hidden');
+      // Si ese check-in era del último día que faltaba, ya se puede abrir
+      // la vuelta siguiente: se repinta para que se vea de una vez.
+      if (avanzarSemanaSiListo()) pintarPlan();
+    };
     caja.querySelector('#ckSkip').onclick = cerrar;
     caja.querySelector('#ckSave').onclick = () => {
       const sel = caja.querySelector('#ckDificil');
@@ -1417,6 +1428,7 @@
     const local = paqueteLocal();
     const unido = fusionar(local, remoto);
     aplicarPaquete(unido);
+    avanzarSemanaSiListo();
     pintarTodo();
     // Si el teléfono traía algo que el servidor no tenía, súbelo ya (sin esperar).
     if (JSON.stringify(unido) !== JSON.stringify(normalizar(remoto))) subirNube();
@@ -2183,6 +2195,20 @@
     }
   }
 
+  // 🔁 Si ya marcaste TODOS los días del plan como hechos, no te dejamos sin
+  // nada que entrenar: se vuelven a abrir solos para la vuelta siguiente
+  // (mismo plan, otra semana). Las sesiones y los check-ins no se tocan —
+  // ahí viven la racha y la semana de la ruta — solo se limpian las marcas
+  // de "hecho" para que puedas volver a hacerlos de una vez.
+  function avanzarSemanaSiListo(){
+    const dias = guardado && guardado.plan && Array.isArray(guardado.plan.dias) ? guardado.plan.dias : [];
+    if (!dias.length || !dias.every((_, i) => !!prog.dias[i])) return false;
+    prog.dias = {};
+    prog.ej = {};
+    guardar(K_PROG, prog);
+    return true;
+  }
+
   function pintarPlan(){
     if (!guardado || !guardado.plan || !Array.isArray(guardado.plan.dias)){
       if (guardado){ guardado = null; try { localStorage.removeItem(scopedKey(K_PLAN)); } catch(e){} }
@@ -2796,6 +2822,9 @@
     if (window.ggPixel && sessionId && est && est.pro) window.ggPixel.compra(sessionId);
     if (comidas && comidas.hoy) comidasHoy = comidas.hoy;
   }
+  // Esto también arregla a quien ya se quedó estancado con el plan entero
+  // en "hecho" de antes de este cambio: en cuanto abra la app, se destraba.
+  avanzarSemanaSiListo();
   pintarTodo();
 
   // 🧪 Puerta para las pruebas. En un navegador de verdad `window.__ggTest` no
