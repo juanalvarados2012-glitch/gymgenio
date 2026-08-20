@@ -3,7 +3,7 @@
 //   { email: "...", pro: true/false }
 // Sirve para que la barra de arriba diga "Pro" o "Gratis" en TODAS las páginas.
 
-import { origenPermitido, crearLimitador, emailDelToken, tieneSuscripcion } from './_comun.js';
+import { origenPermitido, crearLimitador, emailDelToken, tieneSuscripcion, enListaPro } from './_comun.js';
 
 const freno = crearLimitador({ ventanaMs: 15 * 60 * 1000, maximo: 60 });
 
@@ -21,5 +21,6 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.' });
   }
 
-  return res.status(200).json({ email, pro: await tieneSuscripcion(email) });
+  const pro = enListaPro(email) || await tieneSuscripcion(email);
+  return res.status(200).json({ email, pro });
 }

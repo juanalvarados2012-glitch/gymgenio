@@ -112,6 +112,24 @@ export async function emailDelToken(auth) {
   }
 }
 
+/* ============ PRO DE CORTESÍA (SIN PAGAR) ============ */
+// A veces queremos regalar Pro a alguien sin cobrarle: un creador que va a
+// probar la app un mes y enseñarla a su público, un familiar, nosotros mismos
+// para hacer pruebas. En vez de tocar el código cada vez, los correos viven en
+// una variable de Vercel: CORREOS_PRO = "ana@correo.com, luis@correo.com".
+//
+// Si la variable está vacía (lo normal), esto siempre dice "no" y la app se
+// comporta EXACTAMENTE igual que antes: Pro solo con pago de Stripe.
+export function enListaPro(email) {
+  const correo = emailSeguro(email);
+  if (!correo) return false;
+  return (process.env.CORREOS_PRO || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(correo);
+}
+
 /* ============ ¿PAGASTE? ============ */
 // Le pregunta a Stripe si ese correo tiene una suscripción ACTIVA.
 // Stripe es la fuente de la verdad: si cancela, deja de ser Pro solito.
@@ -175,6 +193,7 @@ export async function pagoRecienHecho(sessionId, emailCuenta) {
 
 // El guardia completo en una sola línea: ¿esta persona es Pro, sí o no?
 export async function esProDeVerdad(email, sessionId) {
+  if (enListaPro(email)) return true;            // Pro de cortesía (sin pagar)
   if (await tieneSuscripcion(email)) return true;
   return pagoRecienHecho(sessionId, email);
 }

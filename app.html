@@ -50,7 +50,7 @@
   .lang button{background:transparent;border:none;color:var(--muted);font:inherit;font-size:.72rem;font-weight:700;
     letter-spacing:.1em;padding:.55em .8em;cursor:pointer}
   .lang button.on{background:var(--acid);color:#0A0A0B}
-  .navr a.lnk{font-size:.82rem;color:var(--muted);font-weight:600}
+  .navr a.lnk{font-size:.82rem;color:var(--muted);font-weight:600;white-space:nowrap}
   .navr a.lnk:hover{color:var(--acid)}
   .tag{display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
     padding:.4em .7em;border-radius:3px;background:var(--acid);color:#0A0A0B}
@@ -73,6 +73,10 @@
   .stat .cap{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
   @media(max-width:520px){.stat .big{font-size:1.9rem}.stat{padding:16px 8px}.stat .cap{font-size:.6rem;letter-spacing:.08em}}
   @media(max-width:480px){
+    /* El header no cabía en pantallas angostas: en español "Entrar" + "Planes"
+       se salían ~8px y la página se movía de lado. Menos padding y separación,
+       y el logo un poco más chico, y todo entra sin scroll horizontal. */
+    nav .wrap{padding:0 14px;gap:8px}.navr{gap:9px}.mark{font-size:1.32rem}
     .plan-top{padding:20px 16px}.dia-head{padding:16px 14px;gap:9px}.dia-cuerpo{padding-left:14px;padding-right:14px}
     .dia-estado{font-size:.62rem}.ej{gap:8px}
     /* Antes esta columna no se podía encoger (flex:none) y su "series" nunca
