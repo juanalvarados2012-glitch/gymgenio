@@ -11,29 +11,31 @@ pena hacer si esto crece.
 
 ---
 
-## 🚨 Lo urgente: 4 cosas que solo puede hacer un adulto
+## 🚨 Lo urgente: lo que solo puede hacer un adulto
 
-### 1. Poner tu nombre como titular (10 minutos)
+### 1. ✅ Titular: Nelson Alvarado — falta la ciudad y el código postal
 
 Juan tiene 14 años. Un menor de edad **no puede firmar contratos**: un contrato
 firmado por un menor se puede anular, y los Términos del Servicio son un contrato con
-cada persona que usa la app. Por eso el titular tiene que ser un adulto.
+cada persona que usa la app. Por eso el titular es **Nelson Alvarado**, y ya está
+puesto en `privacidad.html` y `terminos.html` (dos veces en cada uno).
 
-En los tres archivos de abajo hay un hueco escrito así: `[LEGAL OWNER — FULL NAME...]`
-y `[TITULAR LEGAL — NOMBRE COMPLETO...]`, más `[POSTAL ADDRESS...]` / `[DIRECCIÓN
-POSTAL...]`. Hay que cambiarlos por tu nombre completo y una dirección postal.
-
-Para encontrarlos todos de una vez:
+La dirección quedó como **41964 Rondo St, Unit 2402, [CIUDAD], CA [CÓDIGO POSTAL]**.
+Falta rellenar esos dos huecos: una dirección sin ciudad ni ZIP no es una dirección a
+la que se pueda mandar una carta, y el sentido de ponerla es justamente ese.
 
 ```
-grep -n "TITULAR LEGAL\|LEGAL OWNER\|DIRECCIÓN POSTAL\|POSTAL ADDRESS" *.html
+grep -n "CIUDAD\|CÓDIGO POSTAL" *.html
 ```
 
-Están en `privacidad.html`, `terminos.html` (dos veces) y en ningún sitio más.
+Son 4 sitios, y se arreglan en un minuto.
 
-> **La dirección postal.** La ley de California pide una dirección de contacto. No
-> tiene por qué ser la casa: sirve un apartado postal (unos $20 al año en cualquier
-> oficina de correos) o, mejor, la dirección de una LLC si algún día se abre.
+> ⚠️ **Ojo con poner la dirección de casa.** Esa dirección queda **pública en
+> internet**, la puede leer cualquiera y la copian los robots que rastrean webs. Es
+> legal y muchísima gente lo hace, pero lo normal cuando alguien trabaja desde casa es
+> usar un apartado postal (~$20 al año en la oficina de correos) o un buzón virtual
+> (~$10 al mes), y ese es el que se publica. Si algún día se abre una LLC, se usa la
+> dirección de la LLC y este problema desaparece solo.
 
 ### 2. Poner el enlace de cancelar de Stripe (5 minutos)
 
