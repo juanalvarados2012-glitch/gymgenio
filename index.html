@@ -144,6 +144,12 @@
   .final p{color:var(--muted);max-width:42ch;margin:20px auto 32px;position:relative}
   .final .btn{position:relative}
 
+  footer nav.legal{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;
+    padding-top:16px;border-top:1px solid var(--line);font-size:.78rem}
+  footer nav.legal a{color:var(--muted);text-decoration:none}
+  footer nav.legal a:hover{color:var(--acid)}
+  .price-auto{margin-top:12px;font-size:.74rem;line-height:1.5;color:var(--muted)}
+  .price-auto a{text-decoration:underline;text-underline-offset:2px}
   footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--muted);font-size:.85rem}
   .disc{border:1px solid var(--line);border-radius:8px;padding:20px 22px;margin-bottom:28px;font-size:.8rem;line-height:1.6;background:var(--panel)}
   .disc b{color:var(--text)}
@@ -208,8 +214,11 @@
 <body>
 
 <!-- 📣 Meta Pixel (Facebook). El número vive en Vercel: META_PIXEL_ID -->
+<!-- 🔒 El permiso va PRIMERO: pixel.js no contacta a Facebook hasta que este diga que sí.
+     (Antes había aquí un <noscript> con una imagen de Facebook: esa se cargaba sin
+     preguntarle nada a nadie, así que se quitó.) -->
+<script src="/consentimiento.js"></script>
 <script src="/pixel.js"></script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="/api/px?ev=PageView"></noscript>
 
 <nav><div class="wrap">
   <a class="mark" href="/"><img src="/logo-emblem.png" alt=""> GYMGENIO</a>
@@ -316,6 +325,9 @@
         </ul>
         <a href="/login.html" class="btn" id="btnPro" data-gg-pago data-i18n="price.proCta">Go Pro · $14.99/mo</a>
         <div class="price-trust"><b>✓</b><span data-i18n="price.note">Secure checkout via Stripe · Cancel anytime</span></div>
+        <!-- ⚖️ La ley de renovación automática de California pide decir esto ANTES de cobrar,
+             claro y junto al botón: qué cuesta, cada cuánto se cobra, y cómo se cancela. -->
+        <p class="price-auto" data-i18n="price.auto">$14.99 billed monthly. It renews by itself until you cancel. Cancel in one click, anytime, from your Stripe receipt or by emailing us. <a href="/terminos.html#en-5">Subscription terms</a>.</p>
       </div>
     </div>
   </div></section>
@@ -341,6 +353,15 @@
     <span class="mark" style="font-size:1.1rem"><img src="/logo-emblem.png" alt="" style="height:24px"> GYMGENIO</span>
     <div><a href="mailto:juanalvarados2012@gmail.com?subject=GymGenio%20help" data-i18n="foot.help">Contact / Help</a> · © 2026 GymGenio</div>
   </div>
+  <!-- ⚖️ Los enlaces legales van en TODAS las páginas. El de "Tus opciones de privacidad"
+       lo pide la ley de California, y el de datos de salud lo pide la de Washington. -->
+  <nav class="legal" aria-label="Legal">
+    <a href="/privacidad.html" data-i18n="foot.priv">Privacy Policy</a>
+    <a href="/terminos.html" data-i18n="foot.terms">Terms of Service</a>
+    <a href="/salud.html" data-i18n="foot.health">Health &amp; Safety</a>
+    <a href="/privacidad.html#salud-datos" data-i18n="foot.hdata">Consumer Health Data Privacy</a>
+    <a href="#" data-gg-privacidad data-i18n="foot.choices">Your Privacy Choices</a>
+  </nav>
 </div></footer>
 
 <script type="module">
@@ -384,7 +405,11 @@
       'faq.q4':'¿Cómo pido ayuda?','faq.a4':'Escribe a juanalvarados2012@gmail.com y te respondemos.',
       'final.h':'Tu mejor versión empieza hoy.','final.p':'Tu primer plan es gratis. Ya no quedan excusas.','final.cta':'Armar mi plan',
       'disc.b':'⚠ Aviso de salud:','disc.t':'GymGenio ofrece rutinas y sugerencias de comida con fines informativos y de motivación. No es asesoría médica ni reemplaza a un doctor, nutricionista o entrenador certificado. Consulta a un médico antes de empezar cualquier plan de ejercicio o alimentación, sobre todo si tienes alguna condición de salud, estás embarazada o eres menor de edad. Entrenas bajo tu propia responsabilidad.',
-      'foot.help':'Contacto / Ayuda'
+      'price.auto':'$14.99 al mes. Se renueva solo hasta que canceles. Cancelas con un clic, cuando quieras, desde tu recibo de Stripe o escribiéndonos. <a href="/terminos.html#es-5">Condiciones de la suscripción</a>.',
+      'foot.help':'Contacto / Ayuda',
+      'foot.priv':'Política de Privacidad','foot.terms':'Términos del Servicio',
+      'foot.health':'Aviso de Salud','foot.hdata':'Privacidad de datos de salud',
+      'foot.choices':'Tus opciones de privacidad'
     }
   };
   const TICK = {

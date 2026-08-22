@@ -3,6 +3,16 @@
    El número del pixel NO vive aquí: lo guarda Vercel (META_PIXEL_ID) y este
    archivo se lo pide a /api/config, igual que ya hacemos con Supabase.
 
+   🔒 NADA DE ESTO PASA SIN PERMISO. Antes el pixel se cargaba siempre, para
+   todo el mundo, desde el primer segundo. En California y en Europa eso es
+   compartir la actividad de una persona con una red publicitaria sin haberle
+   preguntado — y en una app de salud pesa el doble. Ahora este archivo no
+   contacta a Facebook hasta que consentimiento.js dice que sí. Si la persona
+   dice que no, si cierra el aviso, o si su navegador manda la señal Global
+   Privacy Control, aquí no se carga nada y los eventos se quedan sin mandar.
+   Si consentimiento.js no está en la página, tampoco se carga: al no saber si
+   hay permiso, se asume que no.
+
    Eventos que mandamos:
      · PageView             -> automático, en cada página
      · CompleteRegistration -> cuando alguien termina el onboarding gratis
@@ -39,8 +49,11 @@
   // ---------- Código base estándar del Meta Pixel (fbevents.js) ----------
   // Deja listo window.fbq y va guardando los eventos hasta que carga el script.
   // Si YA existe un fbq (otro pixel o Tag Manager), no lo tocamos: solo lo usamos.
-  var yaHabiaPixel = !!window.fbq;
-  if (!yaHabiaPixel) {
+  //
+  // ⚠️ Esto ya NO corre al cargar la página. Corre dentro de encender(), o sea
+  // solo después de que la persona aceptó. Traer fbevents.js desde Facebook ya
+  // es, por sí solo, contactar a Facebook y darle la IP de quien visita.
+  function cargarLibreriaDeFacebook() {
     !function (f, b, e, v, n, t, s) {
       if (f.fbq) return; n = f.fbq = function () {
         n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
@@ -52,12 +65,22 @@
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
   }
 
+  // ¿Tenemos permiso para medir? La respuesta la da consentimiento.js. Si ese
+  // archivo no está cargado, la respuesta es NO: preferimos medir de menos que
+  // rastrear a alguien que nunca dijo que sí.
+  function hayPermiso() {
+    return !!(window.ggConsent && window.ggConsent.tiene('ads'));
+  }
+
   // Cola propia: si alguien pide un evento antes de tener el número del pixel,
   // lo guardamos y lo mandamos apenas el pixel esté encendido.
   var encendido = false;
   var pendientes = [];
 
   function track(evento, datos) {
+    // Sin permiso no se guarda ni se manda nada. Si la persona acepta después,
+    // consentimiento.js nos llama y a partir de ahí sí se mide.
+    if (!hayPermiso()) return;
     if (!encendido) { pendientes.push([evento, datos]); return; }
     try {
       if (datos) window.fbq('track', evento, datos);
@@ -68,6 +91,7 @@
   function encender(pixelId) {
     if (encendido || !pixelId) return;
     try {
+      cargarLibreriaDeFacebook();
       window.fbq('init', String(pixelId));
       encendido = true;
       // 👇 PageView automático. Solo una vez por carga de página, y solo si
@@ -139,9 +163,23 @@
         String(destino.href || '').indexOf('buy.stripe.com') !== -1) checkout();
   }, true);
 
-  // ---------- Buscar el número del pixel en Vercel ----------
-  fetch('/api/config')
-    .then(function (r) { return r.json(); })
-    .then(function (cfg) { encender(cfg && cfg.metaPixelId); })
-    .catch(function () {});
+  // ---------- Buscar el número del pixel en Vercel (solo con permiso) ----------
+  // ggConsent.cuando(fn) llama a fn ahora si ya hay permiso, o el día que la
+  // persona lo dé. Si dice que no, fn no se llama nunca y aquí no pasa nada.
+  function arrancar() {
+    fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) { encender(cfg && cfg.metaPixelId); })
+      .catch(function () {});
+  }
+
+  if (window.ggConsent && window.ggConsent.cuando) {
+    window.ggConsent.cuando(arrancar);
+  } else {
+    // consentimiento.js todavía no ha cargado (orden de los <script>). Esperamos
+    // su aviso; si nunca llega, nunca se enciende, que es lo correcto.
+    window.addEventListener('gg-consent', function (ev) {
+      if (ev && ev.detail && ev.detail.ads) arrancar();
+    });
+  }
 })();

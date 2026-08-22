@@ -85,6 +85,16 @@
   .tag.free{background:transparent;color:var(--muted);border:1px solid var(--line)}
   .planTxt{color:var(--muted);font-size:.87rem}
   .price-note{font-family:var(--display);font-size:1.5rem;color:var(--text)}
+  .acepto{display:flex;gap:10px;align-items:flex-start;margin:2px 0 16px;font-size:.78rem;
+    line-height:1.5;color:var(--muted);cursor:pointer}
+  .acepto input{width:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--acid);cursor:pointer}
+  .acepto a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .legalnote{font-size:.74rem;line-height:1.5;color:var(--muted);margin:10px 0 0;text-align:center}
+  .legalnote a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .linkbtn.borrar{color:#FF8B7A}
+  nav.legal{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin:18px 0 40px;font-size:.76rem}
+  nav.legal a{color:var(--muted);text-decoration:none}
+  nav.legal a:hover{color:var(--acid)}
   .linkbtn{display:block;width:100%;text-align:center;margin-top:18px;background:none;border:none;
     color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
   .contacto{text-align:center;font-size:.83rem;color:var(--muted);margin:24px 0 60px}
@@ -94,8 +104,11 @@
 <body>
 
 <!-- 📣 Meta Pixel (Facebook). El número vive en Vercel: META_PIXEL_ID -->
+<!-- 🔒 El permiso va PRIMERO: pixel.js no contacta a Facebook hasta que este diga que sí.
+     (Antes había aquí un <noscript> con una imagen de Facebook: esa se cargaba sin
+     preguntarle nada a nadie, así que se quitó.) -->
+<script src="/consentimiento.js"></script>
 <script src="/pixel.js"></script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="/api/px?ev=PageView"></noscript>
 
 <nav><div class="wrap">
   <a class="mark" href="/"><img src="/logo-emblem.png" alt=""> GYMGENIO</a>
@@ -121,6 +134,7 @@
         </svg>
         <span data-i18n="auth.google">Continue with Google</span>
       </button>
+      <p class="legalnote" data-i18n="auth.googleNote">By continuing you accept the <a href="/terminos.html">Terms</a>, the <a href="/privacidad.html">Privacy Policy</a> and the <a href="/salud.html">Health Notice</a>.</p>
       <div class="sep"><span data-i18n="auth.or">or</span></div>
 
       <div class="tabs">
@@ -135,6 +149,14 @@
         <div class="field">
           <label for="password" data-i18n="auth.pass">Password</label>
           <input id="password" type="password" required minlength="6" data-i18n-ph="auth.passPh" placeholder="at least 6 characters">
+        </div>
+        <!-- ⚖️ LA CASILLA. Esto es lo que convierte "los términos existen en algún
+             lado" en "esta persona los aceptó, y lo puedo demostrar". Sale solo
+             al crear cuenta, va sin marcar, y sin marcarla no se crea nada. La
+             fecha y la versión aceptadas se guardan con la cuenta. -->
+        <div class="acepto hidden" id="cajaAcepto">
+          <input type="checkbox" id="acepto" aria-labelledby="aceptoTxt">
+          <span id="aceptoTxt" data-i18n="auth.accept">I am 18 or older (or 13–17 with my parent's permission), and I accept the <a href="/terminos.html" target="_blank" rel="noopener">Terms of Service</a>, the <a href="/privacidad.html" target="_blank" rel="noopener">Privacy Policy</a> and the <a href="/salud.html" target="_blank" rel="noopener">Health &amp; Safety Notice</a>. GymGenio is not medical advice.</span>
         </div>
         <button class="btn" id="btn" type="submit" data-i18n="auth.btn">Log in</button>
       </form>
@@ -154,10 +176,22 @@
       <a class="btn" href="/app.html" data-i18n="me.go">Go to my coach</a>
       <a class="btn btn-dark hidden" id="btnPro" href="#" target="_blank" rel="noopener" data-i18n="me.pro">Go Pro · $14.99/mo</a>
       <button class="linkbtn" id="logout" data-i18n="me.out">Log out</button>
+      <!-- ⚖️ Derecho de borrado (CCPA, GDPR, My Health My Data). La política de
+           privacidad promete que se puede borrar todo desde aquí: esto lo cumple.
+           Borra el plan, el progreso y el registro de comidas, y cierra la cuenta. -->
+      <button class="linkbtn borrar" id="borrar" data-i18n="me.del">Delete my data</button>
+      <p class="legalnote" data-i18n="me.delNote">This erases your plan, your progress and your meal log, and closes your account. It cannot be undone. Cancel your subscription first if you have one.</p>
     </div>
 
   </div>
   <p class="contacto"><span data-i18n="foot.q">Trouble?</span> <a href="mailto:juanalvarados2012@gmail.com?subject=GymGenio%20help">juanalvarados2012@gmail.com</a></p>
+  <nav class="legal" aria-label="Legal">
+    <a href="/privacidad.html" data-i18n="foot.priv">Privacy Policy</a>
+    <a href="/terminos.html" data-i18n="foot.terms">Terms of Service</a>
+    <a href="/salud.html" data-i18n="foot.health">Health &amp; Safety</a>
+    <a href="/privacidad.html#salud-datos" data-i18n="foot.hdata">Consumer Health Data Privacy</a>
+    <a href="#" data-gg-privacidad data-i18n="foot.choices">Your Privacy Choices</a>
+  </nav>
 </div>
 
 <script type="module">
@@ -178,7 +212,18 @@
       'js.free':'Gratis','js.wait':'Un momento…','js.created':'¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.',
       'js.bad':'Correo o contraseña incorrectos.','js.exists':'Ese correo ya tiene cuenta. Inicia sesión.',
       'js.confirm':'Confirma tu correo antes de entrar (revisa tu bandeja).','js.err':'Algo salió mal.',
-      'js.cfg':'Falta configurar Supabase en Vercel.'
+      'js.cfg':'Falta configurar Supabase en Vercel.',
+      'auth.accept':'Tengo 18 años o más (o entre 13 y 17 con permiso de mi papá, mamá o tutor) y acepto los <a href="/terminos.html" target="_blank" rel="noopener">Términos del Servicio</a>, la <a href="/privacidad.html" target="_blank" rel="noopener">Política de Privacidad</a> y el <a href="/salud.html" target="_blank" rel="noopener">Aviso de Salud</a>. GymGenio no es asesoría médica.',
+      'auth.googleNote':'Al continuar aceptas los <a href="/terminos.html">Términos</a>, la <a href="/privacidad.html">Política de Privacidad</a> y el <a href="/salud.html">Aviso de Salud</a>.',
+      'me.del':'Borrar mis datos',
+      'me.delNote':'Borra tu plan, tu progreso y tu registro de comidas, y cierra tu cuenta. No se puede deshacer. Si tienes suscripción, cancélala primero.',
+      'foot.priv':'Política de Privacidad','foot.terms':'Términos del Servicio',
+      'foot.health':'Aviso de Salud','foot.hdata':'Privacidad de datos de salud',
+      'foot.choices':'Tus opciones de privacidad',
+      'js.mustAccept':'Marca la casilla para aceptar los Términos, la Privacidad y el Aviso de Salud.',
+      'js.delAsk':'¿Seguro que quieres borrar tus datos? Se van tu plan, tu progreso y tus comidas, y se cierra tu cuenta.',
+      'js.delSure':'Esto NO se puede deshacer. ¿Lo borramos de verdad?',
+      'js.delDone':'Listo. Tus datos se borraron y tu cuenta se cerró.'
     },
     en:{
       'js.checking':'Checking your plan…','js.proTxt':"You've got the full week, your meal plan and unlimited changes. Go get it.",
@@ -186,7 +231,11 @@
       'js.free':'Free','js.wait':'One moment…','js.created':'Account created! Check your email to confirm it, then log in.',
       'js.bad':'Wrong email or password.','js.exists':'That email already has an account. Log in instead.',
       'js.confirm':'Confirm your email before logging in (check your inbox).','js.err':'Something went wrong.',
-      'js.cfg':'Supabase is not configured in Vercel.'
+      'js.cfg':'Supabase is not configured in Vercel.',
+      'js.mustAccept':'Please tick the box to accept the Terms, the Privacy Policy and the Health Notice.',
+      'js.delAsk':'Delete your data? This removes your plan, your progress and your meals, and closes your account.',
+      'js.delSure':'This CANNOT be undone. Delete everything for real?',
+      'js.delDone':'Done. Your data was deleted and your account was closed.'
     }
   };
   let lang = 'en';
@@ -207,7 +256,14 @@
   const pill = document.getElementById('pill');
   const planTxt = document.getElementById('planTxt');
   const btnPro = document.getElementById('btnPro');
+  const cajaAcepto = document.getElementById('cajaAcepto');
+  const acepto = document.getElementById('acepto');
+  const btnBorrar = document.getElementById('borrar');
   let modo = 'login', esPro = false, correoActual = '';
+
+  // La versión de los documentos que la persona está aceptando hoy. Si algún día
+  // cambian de verdad, se sube esta fecha y se vuelve a pedir la aceptación.
+  const VERSION_LEGAL = '2026-08-22';
 
   function limpiarTokensUrl(){
     if (!window.history || !window.history.replaceState) return;
@@ -243,8 +299,21 @@
   }
   document.querySelectorAll('#lang button').forEach(b => b.onclick = () => setLang(b.dataset.lang));
 
-  tabLogin.onclick  = () => { modo='login';  tabLogin.classList.add('on');  tabSignup.classList.remove('on'); btn.textContent = tabLogin.textContent;  limpiarMsg(); };
-  tabSignup.onclick = () => { modo='signup'; tabSignup.classList.add('on'); tabLogin.classList.remove('on');  btn.textContent = tabSignup.textContent; limpiarMsg(); };
+  // La casilla de aceptación solo aparece al CREAR cuenta: quien ya tiene cuenta
+  // aceptó el día que la creó, y volver a pedírselo cada vez que entra no aporta
+  // nada legalmente y sí estorba.
+  function pintarAcepto(){
+    cajaAcepto.classList.toggle('hidden', modo !== 'signup');
+  }
+  // El texto entero sirve de botón (dedo gordo, pantalla pequeña), pero los tres
+  // enlaces de dentro tienen que poder abrirse SIN marcar la casilla de rebote.
+  cajaAcepto.addEventListener('click', ev => {
+    if (ev.target === acepto || (ev.target.closest && ev.target.closest('a'))) return;
+    acepto.checked = !acepto.checked;
+  });
+  tabLogin.onclick  = () => { modo='login';  tabLogin.classList.add('on');  tabSignup.classList.remove('on'); btn.textContent = tabLogin.textContent;  limpiarMsg(); pintarAcepto(); };
+  tabSignup.onclick = () => { modo='signup'; tabSignup.classList.add('on'); tabLogin.classList.remove('on');  btn.textContent = tabSignup.textContent; limpiarMsg(); pintarAcepto(); };
+  pintarAcepto();
 
   // 🌐 Idioma de arranque: manda lo que la persona eligió alguna vez; si nunca
   // eligió, se le hace caso al navegador. Antes siempre abría en inglés.
@@ -318,7 +387,25 @@
     const password = document.getElementById('password').value;
     try {
       if (modo === 'signup'){
-        const { data, error } = await sb.auth.signUp({ email, password });
+        // ⚖️ Sin casilla no hay cuenta. Y al crearla se guarda CON la cuenta qué
+        // versión aceptó y cuándo: eso es lo que sirve de prueba el día que
+        // alguien diga "yo nunca acepté nada".
+        if (!acepto.checked){
+          verMsg(t('js.mustAccept'), 'err');
+          return;
+        }
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: {
+            legal_version: VERSION_LEGAL,
+            legal_accepted_at: new Date().toISOString(),
+            accepted_terms: true,
+            accepted_privacy: true,
+            accepted_health_notice: true,
+            confirmed_age: '18+ o 13-17 con permiso de tutor'
+          } }
+        });
         if (error) throw error;
         if (data.session) await mostrarSesion();
         else verMsg(t('js.created'), 'ok');
@@ -359,6 +446,39 @@
   };
 
   document.getElementById('logout').onclick = async () => { await sb.auth.signOut(); await mostrarSesion(); };
+
+  /* ⚖️ BORRAR MIS DATOS — el derecho de supresión, de verdad y no por correo.
+     Se pregunta dos veces (esto no tiene vuelta atrás), se llama al servidor con
+     el token de la sesión, y al terminar se cierra la sesión. */
+  btnBorrar.onclick = async () => {
+    if (!sb) return;
+    if (!confirm(t('js.delAsk'))) return;
+    if (!confirm(t('js.delSure'))) return;
+    limpiarMsg();
+    btnBorrar.disabled = true;
+    const original = btnBorrar.textContent;
+    btnBorrar.textContent = t('js.wait');
+    try {
+      const { data:{ session } } = await sb.auth.getSession();
+      if (!session) throw new Error(t('js.err'));
+      const r = await fetch('/api/borrar-datos', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + session.access_token, 'content-type': 'application/json' }
+      });
+      const salida = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(salida.error || t('js.err'));
+      // Lo del teléfono también se va: si no, al recargar volvería a subir todo.
+      try { localStorage.clear(); } catch(e){}
+      await sb.auth.signOut();
+      alert(t('js.delDone'));
+      location.href = '/';
+    } catch (err){
+      verMsg(err.message || t('js.err'), 'err');
+    } finally {
+      btnBorrar.disabled = false;
+      btnBorrar.textContent = original;
+    }
+  };
 </script>
 <script>
   /* Enciende el ayudante que hace que GymGenio se pueda instalar como app. */

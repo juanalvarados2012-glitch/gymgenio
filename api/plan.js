@@ -197,7 +197,9 @@ export default async function handler(req, res) {
   const restricciones = textoSeguro(cuerpo.restricciones, 200);
   const ajuste = textoSeguro(cuerpo.ajuste, 200);
   const progreso = textoSeguro(cuerpo.progreso, 700);   // 700: ahora incluye los check-ins
-  const edad = numeroOpcional(cuerpo.edad, 12, 99, true);
+  // 13 es el mínimo a propósito: por debajo de esa edad la ley federal (COPPA) no
+  // nos deja recoger datos de un menor, así que la app no es para ellos.
+  const edad = numeroOpcional(cuerpo.edad, 13, 99, true);
   const peso = numeroOpcional(cuerpo.peso, 30, 250, false);
   const estatura = numeroOpcional(cuerpo.estatura, 100, 240, false);
   const pesoMeta = numeroOpcional(cuerpo.pesoMeta, 30, 250, false);

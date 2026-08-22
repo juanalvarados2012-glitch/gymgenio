@@ -93,23 +93,38 @@ export function crearLimitador({ ventanaMs, maximo, maximoRegistros = 2000 }) {
 }
 
 /* ============ ¿QUIÉN ERES? ============ */
-// Saca el correo del usuario a partir de su token de Supabase.
-export async function emailDelToken(auth) {
-  if (!auth || auth.indexOf('Bearer ') !== 0) return '';
+// Saca al usuario COMPLETO (id y correo) a partir de su token de Supabase.
+//
+// El id hace falta para borrar su fila de `planes`, que está guardada por id y
+// no por correo. Antes solo sacábamos el correo porque era lo único que se
+// usaba; ahora que existe el borrado de datos, hace falta también el id.
+export async function usuarioDelToken(auth) {
+  const vacio = { id: '', email: '' };
+  if (!auth || auth.indexOf('Bearer ') !== 0) return vacio;
   const token = auth.slice(7).trim();
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY || '';
-  if (!token || !url) return '';
+  if (!token || !url) return vacio;
   try {
     const r = await fetchConTiempo(url + '/auth/v1/user', {
       headers: { Authorization: 'Bearer ' + token, apikey: key }
     });
-    if (!r.ok) return '';
+    if (!r.ok) return vacio;
     const u = await r.json();
-    return emailSeguro(u && u.email);
+    // El id viene de Supabase, pero igual se comprueba la forma: lo vamos a
+    // meter dentro de una dirección para borrar cosas.
+    const id = typeof (u && u.id) === 'string' &&
+      /^[0-9a-f-]{20,40}$/i.test(u.id) ? u.id : '';
+    return { id, email: emailSeguro(u && u.email) };
   } catch (e) {
-    return '';
+    return vacio;
   }
+}
+
+// Lo de siempre: solo el correo. Todo lo que ya existía sigue usando esto.
+export async function emailDelToken(auth) {
+  const u = await usuarioDelToken(auth);
+  return u.email;
 }
 
 /* ============ PRO DE CORTESÍA (SIN PAGAR) ============ */

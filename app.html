@@ -390,6 +390,12 @@
     line-height:1.6;color:var(--muted);background:var(--panel)}
   .aviso b{color:var(--text)}
   .contacto{text-align:center;font-size:.83rem;color:var(--muted);margin-bottom:60px}
+  .legalnote{font-size:.74rem;line-height:1.5;color:var(--muted);margin:-4px 0 14px}
+  .legalnote a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  nav.legal{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;
+    margin:0 0 60px;font-size:.76rem}
+  nav.legal a{color:var(--muted);text-decoration:none}
+  nav.legal a:hover{color:var(--acid)}
   .contacto a{color:var(--acid);font-weight:600}
   /* !important: hay reglas escritas más abajo (.sep, .bar) que si no le ganan a esta */
   .hidden{display:none !important}
@@ -423,8 +429,11 @@
 <body>
 
 <!-- 📣 Meta Pixel (Facebook). El número vive en Vercel: META_PIXEL_ID -->
+<!-- 🔒 El permiso va PRIMERO: pixel.js no contacta a Facebook hasta que este diga que sí.
+     (Antes había aquí un <noscript> con una imagen de Facebook: esa se cargaba sin
+     preguntarle nada a nadie, así que se quitó.) -->
+<script src="/consentimiento.js"></script>
 <script src="/pixel.js"></script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="/api/px?ev=PageView"></noscript>
 
 <nav><div class="wrap">
   <a class="mark" href="/"><img src="/logo-emblem.png" alt=""> GYMGENIO</a>
@@ -581,7 +590,7 @@
     </div>
 
     <div class="row">
-      <div class="field"><label for="edad"><span data-i18n="f.age">Your age</span> <small data-i18n="f.opt">(optional)</small></label><input id="edad" type="number" min="12" max="99" placeholder="28"></div>
+      <div class="field"><label for="edad"><span data-i18n="f.age">Your age</span> <small data-i18n="f.opt">(optional)</small></label><input id="edad" type="number" min="13" max="99" placeholder="28"></div>
       <div class="field">
         <label for="sexo"><span data-i18n="f.sex">Sex</span> <small data-i18n="f.opt4">(optional)</small></label>
         <select id="sexo">
@@ -646,6 +655,9 @@
       <textarea id="restricciones" maxlength="200" data-i18n-ph="f.limitsPh" placeholder="e.g. bad knee, tiny apartment, no jumping"></textarea>
     </div>
 
+    <!-- ⚖️ El aviso va PEGADO al botón, no escondido en el pie: para que valga como
+         aceptación tiene que estar donde la persona mira cuando decide. -->
+    <p class="legalnote" data-i18n="f.legal">By building your plan you accept the <a href="/terminos.html">Terms of Service</a>, the <a href="/privacidad.html">Privacy Policy</a> and the <a href="/salud.html">Health &amp; Safety Notice</a>. GymGenio is not medical advice. You must be 18+, or 13–17 with a parent's permission.</p>
     <button type="submit" class="btn btn-acid" id="submit" data-i18n="f.submit">Build my plan</button>
   </form>
 
@@ -659,6 +671,15 @@
 
   <div class="aviso"><b data-i18n="disc.b">⚠ Health notice:</b> <span data-i18n="disc.t">GymGenio provides workouts and food suggestions for informational and motivational purposes. It is not medical advice and does not replace a doctor, dietitian or certified trainer. Talk to a doctor before starting, especially if you have a health condition, are pregnant, or are under 18. You train at your own risk.</span></div>
   <p class="contacto"><span data-i18n="foot.q">Problems or questions?</span> <a href="mailto:juanalvarados2012@gmail.com?subject=GymGenio%20help">juanalvarados2012@gmail.com</a></p>
+  <!-- ⚖️ Enlaces legales en todas las páginas: "Tus opciones de privacidad" lo pide
+       California, y el de datos de salud lo pide Washington (My Health My Data). -->
+  <nav class="legal" aria-label="Legal">
+    <a href="/privacidad.html" data-i18n="foot.priv">Privacy Policy</a>
+    <a href="/terminos.html" data-i18n="foot.terms">Terms of Service</a>
+    <a href="/salud.html" data-i18n="foot.health">Health &amp; Safety</a>
+    <a href="/privacidad.html#salud-datos" data-i18n="foot.hdata">Consumer Health Data Privacy</a>
+    <a href="#" data-gg-privacidad data-i18n="foot.choices">Your Privacy Choices</a>
+  </nav>
 </div>
 
 <!-- TEMPORIZADOR DE DESCANSO -->
@@ -707,6 +728,12 @@
       'w.phKg':'Tu peso de hoy en kg','w.phLb':'Tu peso de hoy en lb',
       'sep.new':'Plan nuevo','tm.rest':'Descanso','tm.stop':'Parar',
       'disc.b':'⚠ Aviso de salud:','disc.t':'GymGenio ofrece rutinas y sugerencias de comida con fines informativos y de motivación. No es asesoría médica ni reemplaza a un doctor, nutricionista o entrenador certificado. Consulta a un médico antes de empezar, sobre todo si tienes alguna condición de salud, estás embarazada o eres menor de edad. Entrenas bajo tu propia responsabilidad.',
+      'f.legal':'Al armar tu plan aceptas los <a href="/terminos.html">Términos del Servicio</a>, la <a href="/privacidad.html">Política de Privacidad</a> y el <a href="/salud.html">Aviso de Salud</a>. GymGenio no es asesoría médica. Debes tener 18+, o 13–17 con permiso de tu papá, mamá o tutor.',
+      'foot.priv':'Política de Privacidad','foot.terms':'Términos del Servicio',
+      'foot.health':'Aviso de Salud','foot.hdata':'Privacidad de datos de salud',
+      'foot.choices':'Tus opciones de privacidad',
+      'js.auto':'$14.99 al mes, se renueva solo hasta que canceles. Cancelas con un clic cuando quieras.',
+      'js.vConsent':'Para revisar tu técnica, tu teléfono saca 6 fotos del video y solo esas fotos se mandan a analizar.\n\n· El video NUNCA sale de tu teléfono.\n· Ni el video ni las fotos se guardan: se analizan y se botan.\n· No hacemos reconocimiento facial ni creamos ninguna huella biométrica tuya.\n· No se comparte ni se vende a nadie.\n\n¿Nos das permiso para analizarlas?',
       'foot.q':'¿Problemas o dudas?',
       /* dinámicos */
       'js.building':'Armando…','js.free':'GRATIS','js.myacc':'mi cuenta','js.out':'salir',
@@ -789,6 +816,8 @@
       'js.myPlan':'Your plan','js.myPlanSub':'Tick each exercise as you train. Everything saves by itself.',
       'js.upsellH':'Liked your first day?','js.upsellP':'GymGenio Pro gets you the full week, your meal plan and unlimited changes.',
       'js.upsellPro':'Go Pro · $14.99/mo','js.upsellNew':'Create your account and go Pro','js.err':'Something went wrong.',
+      'js.auto':'$14.99 billed monthly, renews by itself until you cancel. Cancel anytime, one click.',
+      'js.vConsent':'To review your technique, your phone takes 6 still frames from the video and only those frames are sent for analysis.\n\n· The video NEVER leaves your phone.\n· Neither the video nor the frames are stored: they are analyzed and discarded.\n· We do not run face recognition and we do not create any biometric identifier of you.\n· Nothing is shared or sold.\n\nDo you give us permission to analyze them?',
       'js.netErr':"I couldn't reach the genie. Check your connection and try again.",
       'js.offlineBar':'📴 No connection. Keep ticking your exercises — everything saves on your phone.',
       'js.saved':'Saved on this device','js.savedCloud':'Saved to your account','js.confirmNew':'Sure? Your current plan and its ticks will be erased.',
@@ -1002,6 +1031,19 @@
   // Si la persona cambia de página o cierra, que no se quede hablando sola.
   try { window.addEventListener('pagehide', callar); } catch(e){}
 
+  // ¿Ya nos dio permiso para analizar las fotos de su video? Si no, se le explica
+  // exactamente qué pasa y decide. Un "no" deja todo como estaba.
+  function permisoVideo(){
+    let ya = '';
+    try { ya = localStorage.getItem('gg_consent_video') || ''; } catch(e){}
+    if (ya) return true;
+    if (!confirm(t('js.vConsent'))) return false;
+    try {
+      localStorage.setItem('gg_consent_video', JSON.stringify({ v:1, ts: Date.now() }));
+    } catch(e){}
+    return true;
+  }
+
   function dibujarFicha(caja, ficha, nombreEjercicio){
     if (!ficha){ caja.innerHTML = '<p class="tec-cargando">' + t('js.hNone') + '</p>'; return; }
     let h = '<h4>' + esc(ficha.nombre) + '</h4>';
@@ -1061,6 +1103,13 @@
     const salida = caja.querySelector('[data-revision]');
     if (bVideo) bVideo.onclick = () => {
       if (!cuentaPro){ cajaUpsell.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+      // ⚖️ PERMISO EXPRESO ANTES DE LA PRIMERA REVISIÓN POR VIDEO.
+      // Las leyes biométricas de Illinois, Texas y Washington exigen avisar por
+      // escrito y pedir permiso ANTES de analizar imágenes de una persona, y la
+      // de Illinois deja demandar directamente por saltárselo. Nosotros no
+      // sacamos ninguna huella biométrica ni guardamos nada — pero eso hay que
+      // decirlo antes, no después. Se pregunta una sola vez y queda anotado.
+      if (!permisoVideo()) return;
       const entrada = document.createElement('input');
       entrada.type = 'file';
       entrada.accept = 'video/*';
@@ -2429,7 +2478,11 @@
       const txt = userEmail ? t('js.upsellPro') : t('js.upsellNew');
       cajaUpsell.className = 'upsell';
       cajaUpsell.innerHTML = '<h3>' + t('js.upsellH') + '</h3><p>' + esc(plan.nota || t('js.upsellP')) + '</p>' +
-        '<a class="btn" href="' + href + '" data-gg-pago' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + txt + '</a>';
+        '<a class="btn" href="' + href + '" data-gg-pago' + (userEmail ? ' target="_blank" rel="noopener"' : '') + '>' + txt + '</a>' +
+        // ⚖️ California obliga a decir "se renueva solo" ANTES del cobro y junto al
+        // botón, no en una página aparte. Sin esto, un cobro recurrente se puede
+        // impugnar entero (y son los pleitos más comunes de las suscripciones).
+        '<p class="legalnote" style="margin-top:12px">' + esc(t('js.auto')) + '</p>';
       cajaUpsell.classList.remove('hidden');
     } else {
       cajaUpsell.className = 'hidden';

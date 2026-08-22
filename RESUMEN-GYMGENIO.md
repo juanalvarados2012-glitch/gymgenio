@@ -31,6 +31,7 @@ que arma tu rutina de gym + comidas. Suscripción **$14.99/mes**.
 - **🏋️ Enseña la técnica de cada ejercicio** ✅ (con voz) → ver abajo
 - **📝 Check-in de 10 segundos** al terminar, y el plan cambia por eso ✅
 - **🎥 Revisión de técnica por video** (Pro) ✅
+- **⚖️ Lo legal: privacidad, términos y aviso de salud** ✅ → ver abajo
 - **Se despliega solo** (Claude sube los cambios a Vercel directo) ✅
 
 ## ☁️ El progreso ya no se pierde (lo nuevo)
@@ -169,6 +170,44 @@ la persona** (el navegador le manda su zona al servidor).
 - La app abre más rápido: las dos preguntas al servidor salen a la vez, no en fila.
 - El botón de quitar mide 40x40 (antes 22x22: imposible atinarle con la mano sudada).
 
+## ⚖️ Lo legal (lo nuevo)
+
+La app cobra dinero, guarda datos de salud, mira fotos de comida, mira videos del
+cuerpo de una persona y hace anuncios en Facebook. Cinco frentes por los que a una app
+se la demanda — y no había ni una línea escrita de defensa.
+
+Ahora hay tres documentos, en inglés y en español: **`privacidad.html`** (qué se
+recoge, con quién se comparte, cómo se borra; cubre California, Europa, la ley de datos
+de salud de Washington y las biométricas de Illinois y Texas), **`terminos.html`** (el
+contrato: asunción de riesgo, límite de responsabilidad, arbitraje individual con
+renuncia a demanda colectiva y salida de 30 días) y **`salud.html`** (el aviso médico
+de verdad, con los teléfonos de ayuda).
+
+**Pero un documento que nadie aceptó no sirve.** Lo que de verdad protege es lo que
+cambió dentro de la app:
+
+- **Casilla obligatoria al crear cuenta**, y se guarda *con la cuenta* qué versión
+  aceptó y cuándo. "Los términos estaban en la web" no vale ante un juez; "esta
+  persona los aceptó el 22 de agosto a las 19:04" sí.
+- **El pixel de Facebook ya no se carga sin permiso.** Antes se cargaba siempre, para
+  todo el mundo, desde el primer segundo. Ahora hay un aviso, y si la persona dice que
+  no —o si su navegador manda la señal Global Privacy Control— no se contacta a
+  Facebook nunca. Se quitó también el pixel invisible del `<noscript>`.
+- **Permiso expreso antes de la primera revisión por video**, explicando que el video
+  no sale del teléfono y que no se saca ninguna huella biométrica. En Illinois se puede
+  demandar directamente por saltarse ese permiso.
+- **Botón "Borrar mis datos"** que borra de verdad (plan, progreso, comidas y cuenta),
+  porque la política lo promete y una promesa así incumplida es peor que no escribirla.
+- **Edad mínima 13** en el formulario y en el servidor (antes dejaba 12; COPPA no
+  permite recoger datos por debajo de 13).
+- **La renovación automática dicha clara** junto a los botones de pago.
+
+Todo eso lo vigilan pruebas: si alguien quita un enlace legal, o el pixel vuelve a
+encenderse solo, o la edad mínima baja, `npm test` se pone rojo.
+
+> 📄 Lo que falta —poner el nombre del titular adulto y la dirección postal— está
+> explicado paso a paso en **`LEGAL-PAPA.md`**. Son 30 minutos.
+
 ## ▶️ Cómo correr esto
 
 Está explicado paso a paso en **`COMO-CORRER.md`**. El resumen:
@@ -191,7 +230,7 @@ viene dentro de Node):
 npm test
 ```
 
-**93 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
+**151 pruebas.** Cubren las cosas que, si se rompen, no te enteras por un
 error en pantalla sino por la factura, por alguien saliendo lastimado, o porque
 un día la racha de alguien aparece más corta y esa persona cree que se equivocó ella:
 
@@ -205,6 +244,7 @@ un día la racha de alguien aparece más corta y esa persona cree que se equivoc
 | `pruebas/nube-arranque.test.js` | Que el cable esté puesto: carga `app.html` de verdad y comprueba que el progreso baja, sube, y que sin la tabla creada nada se rompe. También que el service worker guarde todos los módulos: si falta uno, sin señal la app sale en blanco |
 | `pruebas/tecnica.test.js` | Que el ejercicio encuentre su ficha (y que "plancha lateral" NO caiga en "plancha"), y que **ninguna ficha diagnostique nada** |
 | `pruebas/video.test.js` | Que los cuadros del video **siempre se achiquen** antes de mandarlos: si deja de pasar, la app se ve igual y el único aviso llega en el recibo |
+| `pruebas/legal.test.js` | Que las páginas legales sigan diciendo lo que deben, que **todas** las páginas las enlacen, que el pixel de Facebook no se pueda encender sin permiso, y que la edad mínima siga siendo 13 |
 
 > Cada prueba se comprobó rompiendo el código a propósito para ver que sí falla.
 > Una prueba que no sabe fallar no está cuidando nada.
