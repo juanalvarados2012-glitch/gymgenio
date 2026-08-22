@@ -13,29 +13,33 @@ pena hacer si esto crece.
 
 ## 🚨 Lo urgente: lo que solo puede hacer un adulto
 
-### 1. ✅ Titular: Nelson Alvarado — falta la ciudad y el código postal
+### 1. ✅ Hecho: titular Nelson Alvarado, contacto por correo
 
 Juan tiene 14 años. Un menor de edad **no puede firmar contratos**: un contrato
 firmado por un menor se puede anular, y los Términos del Servicio son un contrato con
 cada persona que usa la app. Por eso el titular es **Nelson Alvarado**, y ya está
 puesto en `privacidad.html` y `terminos.html` (dos veces en cada uno).
 
-La dirección quedó como **41964 Rondo St, Unit 2402, [CIUDAD], CA [CÓDIGO POSTAL]**.
-Falta rellenar esos dos huecos: una dirección sin ciudad ni ZIP no es una dirección a
-la que se pueda mandar una carta, y el sentido de ponerla es justamente ese.
+**No se publica dirección postal, y está bien así.** La CCPA de California solo exige
+dos vías de contacto a los negocios grandes, y tiene una excepción expresa para los que
+funcionan **solo por internet** y tratan directo con sus usuarios: a esos les basta un
+correo electrónico. GymGenio es exactamente eso (y además todavía no llega ni de lejos
+a los umbrales que hacen que la CCPA le aplique: $25M de facturación, 100.000 usuarios,
+o vivir de vender datos). CalOPPA tampoco pide dirección. Los documentos dicen que la
+mandamos por escrito a quien la pida, que es lo que cubre el resto.
 
-```
-grep -n "CIUDAD\|CÓDIGO POSTAL" *.html
-```
+**Cuándo va a hacer falta una de verdad:**
 
-Son 4 sitios, y se arreglan en un minuto.
+- **Correos de marketing.** La ley federal CAN-SPAM exige una dirección postal real
+  *dentro de cada correo* comercial. El día que salga una newsletter o una promoción,
+  hace falta. Un apartado postal cuenta.
+- **Si abres una LLC.** Ahí ya hay una dirección de empresa y se publica esa.
+- **Si GymGenio crece de verdad** (los 100.000 usuarios de la CCPA no son tantos si un
+  anuncio pega).
 
-> ⚠️ **Ojo con poner la dirección de casa.** Esa dirección queda **pública en
-> internet**, la puede leer cualquiera y la copian los robots que rastrean webs. Es
-> legal y muchísima gente lo hace, pero lo normal cuando alguien trabaja desde casa es
-> usar un apartado postal (~$20 al año en la oficina de correos) o un buzón virtual
-> (~$10 al mes), y ese es el que se publica. Si algún día se abre una LLC, se usa la
-> dirección de la LLC y este problema desaparece solo.
+Cuando llegue ese día, lo barato y lo normal es un **apartado postal** (~$20 al año en
+la oficina de correos) o un **buzón virtual** (~$10 al mes) — nunca la casa, porque esa
+dirección queda pública en internet y la copian los robots que rastrean webs.
 
 ### 2. Poner el enlace de cancelar de Stripe (5 minutos)
 
